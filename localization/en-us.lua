@@ -806,6 +806,15 @@ return {
 					"during their next {C:attention}PvP Blind{}",
 				},
 			},
+			c_mp_joker_swap = {
+				name = "Joker Swap",
+				text = {
+					"Give {C:attention}1{} selected {C:attention}Joker{}",
+					"to your {X:purple,C:white}Nemesis{} and take",
+					"a random {C:attention}Joker{} from them",
+					"{C:inactive}(Jokers keep their progress){}",
+				},
+			},
 		},
 		Blind = {
 			bl_mp_nemesis = {
@@ -1380,6 +1389,12 @@ return {
 			k_duel_description = "Standard, plus Attack cards that hit your Nemesis directly.\n\nAttack cards appear in the shop alongside Tarots and Planets.\nFirst Attack card: Tax Collector, which takes money from your Nemesis.\n\n(See bans and reworks tabs for details)",
 			k_attack = "Attack",
 			b_attack_cards = "Attack Cards",
+			k_mp_joker_swapped = "Joker swapped!",
+			k_mp_joker_swapped_by_nemesis = "Your Nemesis swapped Jokers with you",
+			k_mp_joker_swap_no_jokers = "Nemesis has no Jokers that can be swapped",
+			k_mp_joker_swap_not_in_run = "Nemesis is not in a run",
+			k_mp_joker_swap_failed = "Joker Swap failed",
+			k_mp_joker_swap_cancelled = "Joker Swap cancelled: Nemesis left",
 			k_traditional = "Traditional",
 			k_traditional_description = "Multiplayer content without time pressure.\n\nIncludes Multiplayer jokers and balance changes,\nbut removes time-based mechanics for methodical play.\n\nTime-based jokers are banned.\nTimer is disabled.\n\n(See bans and reworks tabs for details)",
 			k_majorleague = "Major League",
