@@ -208,14 +208,14 @@ local function add_swapped_joker(card)
 end
 
 -- Picks which of this game's Jokers to give when the Nemesis swaps with us.
--- Uses its own seed key so no other random queue moves.
+-- Uses its own seed key (different per player) so no other random queue moves.
 local function pick_joker_to_give()
 	local eligible = {}
 	for _, card in ipairs(G.jokers.cards) do
 		if can_be_swapped(card) then eligible[#eligible + 1] = card end
 	end
 	if #eligible == 0 then return nil end
-	return pseudorandom_element(eligible, pseudoseed("mp_joker_swap"))
+	return pseudorandom_element(eligible, pseudoseed(MP.UTILS.player_seed_key("mp_joker_swap")))
 end
 
 ----------------------------------------------------------------------------

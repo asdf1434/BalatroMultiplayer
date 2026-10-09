@@ -40,7 +40,7 @@ MP.register_mod_action("tax_request", function(p)
 	local percent = 0
 	if in_run() then
 		local extra = G.P_CENTERS.c_mp_tax_collector.config.extra
-		percent = pseudorandom("mp_tax_collector", extra.min_percent, extra.max_percent)
+		percent = pseudorandom(MP.UTILS.player_seed_key("mp_tax_collector"), extra.min_percent, extra.max_percent)
 		local dollars = G.GAME.dollars
 		if to_number then dollars = to_number(dollars) end
 		taken = math.max(0, math.floor(dollars * percent / 100))
