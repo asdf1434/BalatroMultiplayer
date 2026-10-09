@@ -1542,6 +1542,21 @@ return {
 			k_mp_crippled_by_nemesis = "Your Nemesis crippled your #1#",
 			k_mp_cripple_no_jokers = "Your Nemesis has no Jokers",
 			k_mp_cripple_all_crippled = "Your Nemesis' Jokers are all crippled",
+			-- Duel bounty race (overrides/duel_bounty.lua, ui/game/duel_bounty.lua)
+			k_mp_bounty_title = "Ante #1# Bounty: $#2#",
+			k_mp_bounty_goal_flush = "Play a Flush",
+			k_mp_bounty_goal_straight = "Play a Straight",
+			k_mp_bounty_goal_faces = "Play #1#+ face cards in one hand",
+			k_mp_bounty_goal_big_hand = "Score #1#+ chips in one hand",
+			k_mp_bounty_goal_discard = "Discard #1# cards at once",
+			k_mp_bounty_goal_tarot = "Use a Tarot card",
+			k_mp_bounty_goal_buy_joker = "Buy a Joker",
+			k_mp_bounty_status_open = "Open",
+			k_mp_bounty_status_pending = "Claim sent...",
+			k_mp_bounty_status_mine = "Claimed by you",
+			k_mp_bounty_status_nemesis = "Claimed by Nemesis",
+			k_mp_bounty_won = "You claimed the bounty: +$#1#",
+			k_mp_bounty_lost = "Your Nemesis claimed the bounty",
 			k_ante_range = "Ante #1#-#2#", -- For example, "Ante 1-2"
 			k_ante_min = "Ante #1#+", -- For example, "Ante 2+"
 			k_credits_list = "#1# and many more!", -- #1# gets replaced with a list of names
