@@ -14,9 +14,15 @@
 #   <path>               Test the code in that folder.
 #
 # Options:
-#   --boost-attacks      Test copy only: set MP.DUEL.attack_shop_rate to 100 in
-#                        layers/duel.lua so Attack cards show up in every shop.
+#   --attack-rate <n>    Test copy only: set MP.DUEL.attack_shop_rate to <n> in
+#                        layers/duel.lua. It is a shop weight next to Jokers (20),
+#                        Tarots (4) and Planets (4), which add up to 28, so about
+#                        n / (n + 28) of shop slots are Attack cards:
+#                          2  (the normal value) about 7%
+#                          10 about 26%, good for testing with normal shops
+#                          100 about 78%, Jokers become rare
 #                        Stops with an error if that line is not in the code.
+#   --boost-attacks      Same as --attack-rate 100.
 #   --bounty <goal>      Test copy only: every Duel bounty uses this goal, for
 #                        example "lucky" or "exact_money". The goal keys are the
 #                        `key = "..."` lines in overrides/duel_bounty.lua.
@@ -99,7 +105,7 @@ worktree_for_branch() {
 }
 
 # --- options -----------------------------------------------------------------
-BOOST_ATTACKS=0
+ATTACK_RATE=""
 BOUNTY_GOAL=""
 RESET_SAVES=0
 LAUNCH=1
@@ -112,7 +118,14 @@ while [ $# -gt 0 ]; do
 		usage
 		exit 0
 		;;
-	--boost-attacks) BOOST_ATTACKS=1 ;;
+	--boost-attacks) ATTACK_RATE=100 ;;
+	--attack-rate)
+		[ $# -ge 2 ] || die "--attack-rate needs a number, for example --attack-rate 10"
+		printf '%s' "$2" | grep -Eq '^[0-9]+(\.[0-9]+)?$' ||
+			die "--attack-rate needs a number that is 0 or more (got '$2')"
+		ATTACK_RATE="$2"
+		shift
+		;;
 	--bounty)
 		[ $# -ge 2 ] || die "--bounty needs a goal key, for example --bounty lucky"
 		BOUNTY_GOAL="$2"
@@ -199,18 +212,18 @@ return {}
 EOF
 fi
 
-if [ "$BOOST_ATTACKS" = 1 ]; then
+if [ -n "$ATTACK_RATE" ]; then
 	DUEL_FILE="$TEST_MODS/BalatroMP/layers/duel.lua"
 	PATTERN='^MP\.DUEL\.attack_shop_rate = '
 	if [ "$DRY_RUN" = 1 ]; then
 		grep -q "$PATTERN" "$SOURCE/layers/duel.lua" 2>/dev/null ||
-			die "--boost-attacks: no line starting with 'MP.DUEL.attack_shop_rate = ' in $SOURCE/layers/duel.lua"
-		echo "  would set MP.DUEL.attack_shop_rate = 100 in the test copy"
+			die "--attack-rate/--boost-attacks: no line starting with 'MP.DUEL.attack_shop_rate = ' in $SOURCE/layers/duel.lua"
+		echo "  would set MP.DUEL.attack_shop_rate = $ATTACK_RATE in the test copy"
 	else
 		grep -q "$PATTERN" "$DUEL_FILE" 2>/dev/null ||
-			die "--boost-attacks: no line starting with 'MP.DUEL.attack_shop_rate = ' in layers/duel.lua of this code."
-		sed -i '' "s/${PATTERN}.*/MP.DUEL.attack_shop_rate = 100/" "$DUEL_FILE"
-		echo "  Attack shop rate set to 100 (test copy only)"
+			die "--attack-rate/--boost-attacks: no line starting with 'MP.DUEL.attack_shop_rate = ' in layers/duel.lua of this code."
+		sed -i '' "s/${PATTERN}.*/MP.DUEL.attack_shop_rate = $ATTACK_RATE/" "$DUEL_FILE"
+		echo "  Attack shop rate set to $ATTACK_RATE (test copy only)"
 	fi
 fi
 

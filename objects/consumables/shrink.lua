@@ -10,6 +10,9 @@ NBA.register(KEY, {
 	detail = function(entry)
 		return localize({ type = "variable", key = "k_mp_nba_shrink_detail", vars = { NBA.config(KEY).hand_size } })
 	end,
+	effect = function(entry)
+		return localize({ type = "variable", key = "k_mp_nba_effect_shrink", vars = { NBA.config(KEY).hand_size } })
+	end,
 	apply = function(entries)
 		local wanted = #entries * NBA.config(KEY).hand_size
 		local removed = math.max(0, math.min(wanted, G.hand.config.card_limit - 1))

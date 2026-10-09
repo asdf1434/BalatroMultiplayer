@@ -26,6 +26,15 @@ NBA.register(KEY, {
 		if not SMODS.Suits[entry.suit] then return nil end
 		return localize(entry.suit, "suits_plural")
 	end,
+	short_name = "k_mp_nba_short_suit_debuff",
+	short = function(entry)
+		if not SMODS.Suits[entry.suit] then return nil end
+		return localize(entry.suit, "suits_plural")
+	end,
+	effect = function(entry)
+		local suit = SMODS.Suits[entry.suit] and localize(entry.suit, "suits_plural") or "?"
+		return localize({ type = "variable", key = "k_mp_nba_effect_suit_debuff", vars = { suit } })
+	end,
 	apply = function(entries)
 		local suits = {}
 		for _, entry in ipairs(entries) do

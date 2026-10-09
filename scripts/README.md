@@ -10,7 +10,7 @@ macOS only. It expects Balatro from Steam at `~/Library/Application Support/Stea
 scripts/test-two-players.sh                        # test this repository
 scripts/test-two-players.sh duel-tax-collector     # test the worktree on that branch
 scripts/test-two-players.sh ../some/other/folder   # test any folder
-scripts/test-two-players.sh --boost-attacks duel-tax-collector
+scripts/test-two-players.sh --attack-rate 10 duel-tax-collector
 scripts/test-two-players.sh --dry-run              # print the steps, change nothing
 scripts/test-two-players.sh --help                 # all options
 ```
@@ -44,7 +44,21 @@ Your normal `Mods` folder and your real save in `~/Library/Application Support/B
 
 | Option | Effect |
 |---|---|
-| `--boost-attacks` | Sets `MP.DUEL.attack_shop_rate = 100` in the test copy of `layers/duel.lua`. Stops with an error if that line does not exist. |
+| `--attack-rate <n>` | Sets `MP.DUEL.attack_shop_rate = <n>` in the test copy of `layers/duel.lua`. Stops with an error if that line does not exist. See "Attack card rate" below. |
+| `--boost-attacks` | Same as `--attack-rate 100`. |
 | `--reset-saves` | Deletes both test save folders and copies them again from your real save. |
 | `--no-launch` | Copies the code and backs up the save, but does not open the game. |
 | `--dry-run` | Only prints what would happen. |
+
+### Attack card rate
+
+`MP.DUEL.attack_shop_rate` is a shop weight. Each shop slot picks a card type by weight: Jokers 20, Tarots 4, Planets 4 (28 together), plus the Attack weight. So about `n / (n + 28)` of shop slots are Attack cards:
+
+| `--attack-rate` | Attack cards in the shop | Notes |
+|---|---|---|
+| 2 | about 7% | The normal Duel value |
+| 10 | about 26% | Good for testing: Attack cards are common and Jokers still show up |
+| 28 | about 50% | |
+| 100 | about 78% | The same as `--boost-attacks`. Jokers become rare |
+
+Vouchers like Tarot Merchant or Planet Merchant raise the Tarot or Planet weight, so the share drops a little after they are bought.
