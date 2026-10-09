@@ -197,6 +197,7 @@ function MP.reset_lobby_config(persist_ruleset_and_gamemode)
 		forced_config = false,
 		preview_disabled = false,
 		legacy_smallworld = false,
+		duel_bounties = true, -- Duel only: bounty race (overrides/duel_bounty.lua)
 		-- Baseline off; start_lobby sets it on for standard-layer rulesets.
 		hide_score_until_played = false,
 		enemy_location_disabled = false,

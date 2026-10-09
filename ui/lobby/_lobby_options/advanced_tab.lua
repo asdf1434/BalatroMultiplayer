@@ -195,6 +195,9 @@ function MP.UI.create_advanced_options_tab()
 				"b_opts_legacy_smallworld",
 				"legacy_smallworld"
 			) or nil,
+			MP.is_layer_active("duel")
+					and create_lobby_option_toggle("duel_bounties_toggle", "b_opts_duel_bounties", "duel_bounties")
+				or nil,
 			create_lobby_option_toggle(
 				"different_seeds_toggle",
 				"b_opts_diff_seeds",

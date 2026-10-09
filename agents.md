@@ -269,7 +269,7 @@ The most complex layer. `MP.SANDBOX` (defined in `layers/sandbox.lua`) manages a
 
 ### Duel Bounty Race
 
-Mechanic of the `duel` layer, not a card. Logic in `overrides/duel_bounty.lua` (`MP.BOUNTY`), panel above the deck in `ui/game/duel_bounty.lua`. Each ante has one goal, picked statelessly from `pseudohash("mp_duel_bounty_ante_" .. ante .. seed)` so both games agree without messages. The bounty is open on a player's game while that player is in that ante. The host's game decides the winner: guest sends `bounty_claim`, host records the first claimant and answers `bounty_result`; host claims locally and sends `bounty_result`. Tunables (reward, goal thresholds) are fields on `MP.BOUNTY`.
+Mechanic of the `duel` layer, not a card; lobby option `duel_bounties` (default on). Logic in `overrides/duel_bounty.lua` (`MP.BOUNTY`), panel above the deck in `ui/game/duel_bounty.lua`. One bounty is live at a time: bounty 1 at game start, the next one when a boss PvP blind ends (`MP.GAME.end_pvp` turning true reaches both games together). Tier (easy/medium/hard, from `TIERS_BY_ANTE`), goal and goal option are picked statelessly with `pseudorandom(pseudohash("mp_duel_bounty_<index>_<part>_" .. seed))`, so both games agree without messages. Jackpot: an unclaimed bounty's reward is added to the next. The host's game decides the winner: guest sends `bounty_claim`, host records the first claimant (or "none" once expired) and answers `bounty_result` with the amount; host claims locally and sends `bounty_result`. Tunables are fields on `MP.BOUNTY`.
 
 ## Joker Implementation Model
 
