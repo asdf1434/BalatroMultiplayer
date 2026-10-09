@@ -36,6 +36,9 @@ MP.BOUNTY.TIERS_BY_ANTE = {
 	{ max_ante = math.huge, tiers = { "medium", "hard" } },
 }
 MP.BOUNTY.claim_retry_seconds = 5
+-- Testing only: a goal key (for example "lucky") makes every bounty use that
+-- goal. scripts/test-two-players.sh --bounty <key> sets this in its test copy.
+MP.BOUNTY.force_goal = nil
 
 -- Goal numbers
 MP.BOUNTY.hand_types = { "High Card", "Pair", "Three of a Kind" }
@@ -121,12 +124,16 @@ MP.BOUNTY.GOALS = {
 		},
 		{
 			-- PvP blinds are left out: they have no fixed target to beat.
+			-- In multiplayer ctx.game_over is always false, even on a failed blind.
+			-- A failed blind has its target set to -1 (ui/game/game_state.lua,
+			-- Game:update_new_round) before end_round runs, so check the score.
 			key = "quick_blind",
 			vars = function() return { MP.BOUNTY.quick_blind_hands } end,
 			context = function(ctx)
 				return ctx.end_of_round
-					and not ctx.game_over
 					and not MP.is_pvp_boss()
+					and to_big(G.GAME.blind.chips) > to_big(0)
+					and to_big(G.GAME.chips) >= to_big(G.GAME.blind.chips)
 					and G.GAME.current_round.hands_played <= MP.BOUNTY.quick_blind_hands
 			end,
 		},
@@ -202,11 +209,29 @@ local function tiers_for_ante(ante)
 	end
 end
 
-local function new_bounty(index, ante)
+-- Ante the bounty belongs to, from its number alone so both games agree even if
+-- one has already moved to the next ante. Bounty 1 starts at ante 1; bounty k
+-- (k >= 2) appears after the boss PvP blind of ante pvp_start_round + k - 2.
+function MP.BOUNTY.ante_for(index)
+	if index <= 1 then return 1 end
+	return (tonumber(MP.LOBBY.config.pvp_start_round) or 2) + index - 1
+end
+
+local function new_bounty(index)
+	local ante = MP.BOUNTY.ante_for(index)
 	local tiers = tiers_for_ante(ante)
 	local tier = tiers[pick(index .. "_tier", #tiers)]
 	local goals = MP.BOUNTY.GOALS[tier]
 	local goal = goals[pick(index .. "_goal", #goals)]
+	if MP.BOUNTY.force_goal then
+		for t, list in pairs(MP.BOUNTY.GOALS) do
+			for _, g in ipairs(list) do
+				if g.key == MP.BOUNTY.force_goal then
+					tier, goal = t, g
+				end
+			end
+		end
+	end
 	local opt = goal.options and goal.options[pick(index .. "_opt", #goal.options)]
 	return { index = index, ante = ante, tier = tier, goal = goal, opt = opt, sold = 0, shop_rerolls = 0, streak = 0 }
 end
@@ -282,7 +307,7 @@ local function show_text(text, colour)
 	})
 end
 
-local function reveal(index, ante)
+local function reveal(index)
 	local s = state()
 	-- The previous bounty expires now. The host's "none" is final; the guest
 	-- keeps a pending claim open until the host answers it.
@@ -291,7 +316,7 @@ local function reveal(index, ante)
 		s.winners[prev] = "none"
 	end
 	s.index = index
-	s.history[index] = new_bounty(index, ante)
+	s.history[index] = new_bounty(index)
 	if index > 1 then
 		show_text(localize({ type = "variable", key = "k_mp_bounty_new", vars = {} }), G.C.GOLD)
 	end
@@ -364,7 +389,7 @@ MP.register_mod_action("bounty_claim", function(p)
 	if not index or index > state().index + 1 then return end
 	if index > state().index then
 		-- Not revealed here yet; reveal it now so the reward can be computed.
-		reveal(index, G.GAME.round_resets.ante + 1)
+		reveal(index)
 	end
 	record_winner(index, "guest", nil) -- no-op if someone has it or it expired
 	local winner = state().winners[index]
@@ -435,15 +460,18 @@ function Game:update(dt)
 		if not MP.GAME.duel_bounty then
 			MP.GAME.duel_bounty =
 				{ index = 0, pvp_ends = 0, history = {}, winners = {}, paid = {}, pending = {} }
-			reveal(1, G.GAME.round_resets.ante)
+			reveal(1)
 			was_end_pvp = MP.GAME.end_pvp
 		end
-		-- Next bounty when a boss PvP blind ends. The ante has not gone up yet.
+		-- Next bounty when a boss PvP blind ends. The endPvP handler sets
+		-- MP.GAME.end_pvp after Game.update has run this frame (networking/
+		-- action_handlers.lua), and the game resets it inside Game.update, so this
+		-- check (which runs before the original Game.update) sees it next frame.
 		-- The host may already have revealed it early because of a guest claim.
 		if MP.GAME.end_pvp and not was_end_pvp and G.GAME.blind_on_deck == "Boss" then
 			local s = state()
 			s.pvp_ends = s.pvp_ends + 1
-			if s.index < s.pvp_ends + 1 then reveal(s.pvp_ends + 1, G.GAME.round_resets.ante + 1) end
+			if s.index < s.pvp_ends + 1 then reveal(s.pvp_ends + 1) end
 		end
 		was_end_pvp = MP.GAME.end_pvp
 		check("poll")

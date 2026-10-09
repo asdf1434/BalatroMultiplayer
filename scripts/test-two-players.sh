@@ -17,6 +17,9 @@
 #   --boost-attacks      Test copy only: set MP.DUEL.attack_shop_rate to 100 in
 #                        layers/duel.lua so Attack cards show up in every shop.
 #                        Stops with an error if that line is not in the code.
+#   --bounty <goal>      Test copy only: every Duel bounty uses this goal, for
+#                        example "lucky" or "exact_money". The goal keys are the
+#                        `key = "..."` lines in overrides/duel_bounty.lua.
 #   --reset-saves        Throw away both test save folders and copy them again
 #                        from your real save (see "Save data" below).
 #   --no-launch          Do every step except opening the game windows.
@@ -97,6 +100,7 @@ worktree_for_branch() {
 
 # --- options -----------------------------------------------------------------
 BOOST_ATTACKS=0
+BOUNTY_GOAL=""
 RESET_SAVES=0
 LAUNCH=1
 DRY_RUN=0
@@ -109,6 +113,11 @@ while [ $# -gt 0 ]; do
 		exit 0
 		;;
 	--boost-attacks) BOOST_ATTACKS=1 ;;
+	--bounty)
+		[ $# -ge 2 ] || die "--bounty needs a goal key, for example --bounty lucky"
+		BOUNTY_GOAL="$2"
+		shift
+		;;
 	--reset-saves) RESET_SAVES=1 ;;
 	--no-launch) LAUNCH=0 ;;
 	--dry-run) DRY_RUN=1 ;;
@@ -202,6 +211,22 @@ if [ "$BOOST_ATTACKS" = 1 ]; then
 			die "--boost-attacks: no line starting with 'MP.DUEL.attack_shop_rate = ' in layers/duel.lua of this code."
 		sed -i '' "s/${PATTERN}.*/MP.DUEL.attack_shop_rate = 100/" "$DUEL_FILE"
 		echo "  Attack shop rate set to 100 (test copy only)"
+	fi
+fi
+
+if [ -n "$BOUNTY_GOAL" ]; then
+	BOUNTY_SRC="$SOURCE/overrides/duel_bounty.lua"
+	BOUNTY_FILE="$TEST_MODS/BalatroMP/overrides/duel_bounty.lua"
+	PATTERN='^MP\.BOUNTY\.force_goal = '
+	grep -q "key = \"$BOUNTY_GOAL\"" "$BOUNTY_SRC" 2>/dev/null ||
+		die "--bounty: no goal with key \"$BOUNTY_GOAL\" in $BOUNTY_SRC"
+	if [ "$DRY_RUN" = 1 ]; then
+		echo "  would force every bounty to the \"$BOUNTY_GOAL\" goal in the test copy"
+	else
+		grep -q "$PATTERN" "$BOUNTY_FILE" 2>/dev/null ||
+			die "--bounty: no line starting with 'MP.BOUNTY.force_goal = ' in overrides/duel_bounty.lua of this code."
+		sed -i '' "s/${PATTERN}.*/MP.BOUNTY.force_goal = \"$BOUNTY_GOAL\"/" "$BOUNTY_FILE"
+		echo "  Every bounty forced to \"$BOUNTY_GOAL\" (test copy only)"
 	fi
 fi
 
