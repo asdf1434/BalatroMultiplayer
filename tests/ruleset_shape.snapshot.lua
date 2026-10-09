@@ -264,6 +264,7 @@ return {
     ["reworked_blinds"] = {},
     ["reworked_consumables"] = {
       "c_mp_cripple",
+      "c_mp_joker_swap",
       "c_mp_ouija_standard",
       "c_mp_tax_collector",
     },
