@@ -47,6 +47,7 @@ MP.BOUNTY.reroll_streak = 5
 MP.BOUNTY.exact_money = { 49, 64, 81, 100 }
 MP.BOUNTY.low_score = 100
 MP.BOUNTY.sell_jokers = 2
+MP.BOUNTY.same_hand_streak = 3
 
 local function num(x)
 	if to_number then return to_number(x) end
@@ -172,6 +173,18 @@ MP.BOUNTY.GOALS = {
 				return b.sold >= MP.BOUNTY.sell_jokers
 			end,
 		},
+		{
+			-- Consecutive hands played after this bounty appeared, across blinds.
+			key = "same_hand",
+			vars = function(_, b) return { MP.BOUNTY.same_hand_streak, b.streak } end,
+			context = function(ctx, _, b)
+				if ctx.after then
+					b.streak = (ctx.scoring_name == b.last_hand) and b.streak + 1 or 1
+					b.last_hand = ctx.scoring_name
+				end
+				return b.streak >= MP.BOUNTY.same_hand_streak
+			end,
+		},
 	},
 }
 
@@ -195,7 +208,7 @@ local function new_bounty(index, ante)
 	local goals = MP.BOUNTY.GOALS[tier]
 	local goal = goals[pick(index .. "_goal", #goals)]
 	local opt = goal.options and goal.options[pick(index .. "_opt", #goal.options)]
-	return { index = index, ante = ante, tier = tier, goal = goal, opt = opt, sold = 0, shop_rerolls = 0 }
+	return { index = index, ante = ante, tier = tier, goal = goal, opt = opt, sold = 0, shop_rerolls = 0, streak = 0 }
 end
 
 local function state() return MP.GAME.duel_bounty end

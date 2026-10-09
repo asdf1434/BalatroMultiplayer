@@ -1563,6 +1563,7 @@ return {
 			k_mp_bounty_goal_straight_flush = "Play a Straight Flush",
 			k_mp_bounty_goal_low_score = "Score under #1# in one hand",
 			k_mp_bounty_goal_sell_jokers = "Sell #1# Jokers (#2#/#1#)",
+			k_mp_bounty_goal_same_hand = "Play the same hand #1# times in a row (#2#/#1#)",
 			k_mp_bounty_status_open = "Open",
 			k_mp_bounty_status_pending = "Claim sent...",
 			k_mp_bounty_status_mine = "Claimed by you",
