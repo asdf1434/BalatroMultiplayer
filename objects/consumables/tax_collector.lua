@@ -39,7 +39,13 @@ MP.register_mod_action("tax_request", function(p)
 		if to_number then dollars = to_number(dollars) end
 		taken = math.min(tonumber(p.amount) or 0, math.max(0, math.floor(dollars)))
 		-- instant so a second request in the same frame sees the updated total
-		if taken > 0 then ease_dollars(-taken, true) end
+		if taken > 0 then
+			ease_dollars(-taken, true)
+			-- A tax is not spending. The ease_dollars patch in lovely/game.toml counts
+			-- every loss into spent_total (which feeds spent_last_shop / Penny Pincher),
+			-- so take it back out. Safe right here because the ease above is instant.
+			MP.GAME.spent_total = to_big(MP.GAME.spent_total) - to_big(taken)
+		end
 		show_tax_text(localize({ type = "variable", key = "k_mp_taxed_by_nemesis", vars = { taken } }))
 	end
 	MP.ACTIONS.modded(MP.id, "tax_reply", { amount = taken })
