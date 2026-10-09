@@ -233,6 +233,54 @@ return {
     ["spectral_banned_enhancements"] = {},
     ["standard"] = true,
   },
+  ["duel"] = {
+    ["_has_functions"] = {
+      ["create_info_menu"] = true,
+      ["force_lobby_options"] = true,
+      ["is_disabled"] = true,
+    },
+    ["banned_blinds"] = {},
+    ["banned_consumables"] = {
+      "c_justice",
+    },
+    ["banned_enhancements"] = {},
+    ["banned_jokers"] = {
+      "j_mp_conjoined_joker",
+      "j_mp_defensive_joker",
+      "j_mp_speedrun",
+    },
+    ["banned_silent"] = {
+      "c_ouija",
+      "j_bloodstone",
+      "j_hanging_chad",
+      "j_selzer",
+      "j_ticket",
+      "j_turtle_bean",
+    },
+    ["banned_tags"] = {},
+    ["banned_vouchers"] = {},
+    ["key"] = "duel",
+    ["multiplayer_content"] = true,
+    ["reworked_blinds"] = {},
+    ["reworked_consumables"] = {
+      "c_mp_ouija_standard",
+      "c_mp_tax_collector",
+    },
+    ["reworked_enhancements"] = {
+      "m_glass",
+    },
+    ["reworked_jokers"] = {
+      "j_mp_bloodstone",
+      "j_mp_hanging_chad",
+      "j_mp_seltzer",
+      "j_mp_ticket",
+      "j_mp_turtle_bean",
+    },
+    ["reworked_tags"] = {},
+    ["reworked_vouchers"] = {},
+    ["spectral_banned_enhancements"] = {},
+    ["standard"] = true,
+  },
   ["experimental"] = {
     ["_has_functions"] = {
       ["create_info_menu"] = true,

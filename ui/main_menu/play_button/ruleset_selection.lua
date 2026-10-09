@@ -18,6 +18,7 @@ local rulesets_tabs = {
 						{ button_id = "blitz_ruleset_button", button_localize_key = "k_blitz" },
 						{ button_id = "traditional_ruleset_button", button_localize_key = "k_traditional" },
 						{ button_id = "vanilla_ruleset_button", button_localize_key = "k_vanilla" },
+						{ button_id = "duel_ruleset_button", button_localize_key = "k_duel" },
 					},
 				},
 			},

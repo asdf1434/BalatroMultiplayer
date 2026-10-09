@@ -789,6 +789,16 @@ return {
 				},
 			},
 		},
+		Attack = {
+			c_mp_tax_collector = {
+				name = "Tax Collector",
+				text = {
+					"Take up to {C:money}$#1#{} from",
+					"your {X:purple,C:white}Nemesis{}",
+					"and gain the amount taken",
+				},
+			},
+		},
 		Blind = {
 			bl_mp_nemesis = {
 				name = "Your Nemesis",
@@ -971,6 +981,15 @@ return {
 				name = "Balanced",
 				text = {
 					"Earns {C:money}$4{} instead of {C:money}$3{}",
+				},
+			},
+			undiscovered_attack = {
+				name = "Not Discovered",
+				text = {
+					"Purchase or use",
+					"this card in an",
+					"unseeded run to",
+					"learn what it does",
 				},
 			},
 			current_nemesis = {
@@ -1341,6 +1360,10 @@ return {
 			k_blitz = "Standard",
 			k_blitz_description = "The balanced Multiplayer ruleset.\n\nIncludes Multiplayer jokers and balance changes\nwith full control over your lobby settings.\n\n(See bans and reworks tabs for details)",
 			k_experimental = "Experimental",
+			k_duel = "Duel",
+			k_duel_description = "Standard, plus Attack cards that hit your Nemesis directly.\n\nAttack cards appear in the shop alongside Tarots and Planets.\nFirst Attack card: Tax Collector, which takes money from your Nemesis.\n\n(See bans and reworks tabs for details)",
+			k_attack = "Attack",
+			b_attack_cards = "Attack Cards",
 			k_traditional = "Traditional",
 			k_traditional_description = "Multiplayer content without time pressure.\n\nIncludes Multiplayer jokers and balance changes,\nbut removes time-based mechanics for methodical play.\n\nTime-based jokers are banned.\nTimer is disabled.\n\n(See bans and reworks tabs for details)",
 			k_majorleague = "Major League",
@@ -1482,6 +1505,8 @@ return {
 			k_ruleset_disabled_lovely_version = "Lovely #1# Required",
 			k_failed_to_join_lobby = "Failed to join lobby: #1#",
 			k_ante_number = "Ante #1#",
+			k_mp_taxed_by_nemesis = "Your Nemesis taxed you $#1#",
+			k_mp_taxed_nemesis = "Taxed your Nemesis $#1#",
 			k_ante_range = "Ante #1#-#2#", -- For example, "Ante 1-2"
 			k_ante_min = "Ante #1#+", -- For example, "Ante 2+"
 			k_credits_list = "#1# and many more!", -- #1# gets replaced with a list of names
