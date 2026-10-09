@@ -26,16 +26,18 @@ SMODS.Consumable({
 	set = "Attack",
 	-- Placeholder art: Death's sprite from the default (vanilla Tarot) atlas
 	pos = { x = 3, y = 1 },
-	cost = 4,
+	cost = 6,
 	unlocked = true,
 	discovered = true,
 	config = { extra = { hand_size = 1, chance = 0.75 } },
 	loc_vars = function(self, info_queue, card)
 		MP.UTILS.add_nemesis_info(info_queue)
-		return { vars = { math.floor(card.ability.extra.chance * 100 + 0.5), card.ability.extra.hand_size } }
+		return {
+			vars = { math.floor(card.ability.extra.chance * 100 + 0.5), card.ability.extra.hand_size, NBA.max_pending },
+		}
 	end,
 	can_use = function(self, card)
-		return NBA.nemesis_present()
+		return NBA.can_send()
 	end,
 	use = function(self, card, area, copier)
 		NBA.send(KEY)

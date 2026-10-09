@@ -1,17 +1,39 @@
--- Blind Inflation: the Nemesis' next non-PvP blind needs more chips. PvP blinds
--- are skipped (their target is the opponent's score), so the attack waits.
--- Copies that land on the same blind add up: two make +50%.
+-- Blind Inflation: the Nemesis' next non-PvP blind needs a random -5% to +30%
+-- chips. The percent is rolled when the attack arrives (on the Nemesis' game) so
+-- the incoming list can show it. PvP blinds are skipped (their target is the
+-- opponent's score), so the attack waits. Copies that land on the same blind add
+-- up: +20% and -5% make +15%.
 
 local KEY = "c_mp_blind_inflation"
 local NBA = MP.NEXT_BLIND_ATTACKS
 
+-- The percent can come from the network (attacker's messages), so keep it a
+-- whole number inside the card's range.
+local function entry_percent(entry)
+	local extra = NBA.config(KEY)
+	local percent = math.floor(tonumber(entry.percent) or 0)
+	return math.max(extra.min_percent, math.min(extra.max_percent, percent))
+end
+
 NBA.register(KEY, {
 	skips_pvp = true,
+	on_receive = function(entry, pending)
+		local extra = NBA.config(KEY)
+		entry.percent = pseudorandom("mp_blind_inflation", extra.min_percent, extra.max_percent)
+	end,
 	detail = function(entry)
-		return localize({ type = "variable", key = "k_mp_nba_inflation_detail", vars = { NBA.config(KEY).percent } })
+		return localize({
+			type = "variable",
+			key = "k_mp_nba_inflation_detail",
+			vars = { string.format("%+d", entry_percent(entry)) },
+		})
 	end,
 	apply = function(entries)
-		local mult = 1 + #entries * NBA.config(KEY).percent / 100
+		local total = 0
+		for _, entry in ipairs(entries) do
+			total = total + entry_percent(entry)
+		end
+		local mult = 1 + total / 100
 		local blind = G.GAME.blind
 		blind.chips = blind.chips * mult
 		if type(blind.chips) == "number" then blind.chips = math.floor(blind.chips) end
@@ -33,16 +55,19 @@ SMODS.Consumable({
 	set = "Attack",
 	-- Placeholder art: The Tower's sprite from the default (vanilla Tarot) atlas
 	pos = { x = 6, y = 1 },
-	cost = 4,
+	cost = 6,
 	unlocked = true,
 	discovered = true,
-	config = { extra = { percent = 25, chance = 0.75 } },
+	config = { extra = { min_percent = -5, max_percent = 30, chance = 0.75 } },
 	loc_vars = function(self, info_queue, card)
 		MP.UTILS.add_nemesis_info(info_queue)
-		return { vars = { math.floor(card.ability.extra.chance * 100 + 0.5), card.ability.extra.percent } }
+		local extra = card.ability.extra
+		return {
+			vars = { math.floor(extra.chance * 100 + 0.5), extra.min_percent, extra.max_percent, NBA.max_pending },
+		}
 	end,
 	can_use = function(self, card)
-		return NBA.nemesis_present()
+		return NBA.can_send()
 	end,
 	use = function(self, card, area, copier)
 		NBA.send(KEY)

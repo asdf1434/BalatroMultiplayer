@@ -36,9 +36,17 @@
 --                                     run continues without the lobby
 -- Tunable numbers live in the card's config.extra. Every effect has a chance
 -- (config.extra.chance, 1 = always) rolled in roll_lands() below.
+--
+-- Limit: at most NBA.max_pending attacks (any mix of cards) can be waiting on
+-- the Nemesis. The attacker's game counts what it sent that has not landed or
+-- fizzled yet (G.GAME.mp_next_blind.sent) and can_use() returns false at the
+-- limit, so a card is never wasted. The Nemesis' game also refuses attacks over
+-- the limit in case the two counts ever disagree.
 
 local NBA = {}
 MP.NEXT_BLIND_ATTACKS = NBA
+
+NBA.max_pending = 4
 
 local defs = {}
 local order = {}
@@ -60,7 +68,7 @@ end
 
 function NBA.state()
 	if not G.GAME then return nil end
-	G.GAME.mp_next_blind = G.GAME.mp_next_blind or { pending = {}, active = {} }
+	G.GAME.mp_next_blind = G.GAME.mp_next_blind or { pending = {}, active = {}, sent = 0 }
 	return G.GAME.mp_next_blind
 end
 
@@ -84,6 +92,18 @@ end
 
 local function in_run()
 	return G.STAGE == G.STAGES.RUN and G.GAME and G.HUD and G.hand
+end
+
+-- can_use() for every next-blind Attack card.
+function NBA.can_send()
+	local state = NBA.state()
+	return NBA.nemesis_present() and state ~= nil and state.sent < NBA.max_pending
+end
+
+-- One of the attacks this game sent has been resolved (landed, fizzled, refused).
+local function sent_resolved()
+	local state = NBA.state()
+	if state then state.sent = math.max(0, state.sent - 1) end
 end
 
 function NBA.name(key)
@@ -140,6 +160,8 @@ end
 
 -- Sender side: each card's use() is one call to this.
 function NBA.send(key)
+	local state = NBA.state()
+	if state then state.sent = state.sent + 1 end
 	MP.ACTIONS.modded(MP.id, "next_blind_attack", { effect = key })
 end
 
@@ -172,6 +194,10 @@ MP.register_mod_action("next_blind_attack", function(p)
 		return
 	end
 	local pending = NBA.pending()
+	if #pending >= NBA.max_pending then
+		MP.ACTIONS.modded(MP.id, "next_blind_attack_reply", { effect = key, result = "full" })
+		return
+	end
 	local entry = { key = key }
 	if def.on_receive then def.on_receive(entry, pending) end
 	pending[#pending + 1] = entry
@@ -188,7 +214,11 @@ MP.register_mod_action("next_blind_attack_reply", function(p)
 	if not defs[entry.key] then return end
 	if p.result == "pending" then
 		show_text(localize({ type = "variable", key = "k_mp_nba_sent_to_nemesis", vars = { NBA.describe(entry) } }))
+	elseif p.result == "full" then
+		sent_resolved()
+		show_text(localize({ type = "variable", key = "k_mp_nba_full", vars = { NBA.max_pending } }))
 	else
+		sent_resolved()
 		show_text(localize("k_mp_nba_not_in_run"))
 	end
 end, MP.id)
@@ -198,6 +228,7 @@ MP.register_mod_action("next_blind_attack_result", function(p)
 	if not in_run() then return end
 	local entry = entry_from_message(p)
 	if not defs[entry.key] then return end
+	sent_resolved()
 	if p.result == "landed" then
 		show_text(localize({ type = "variable", key = "k_mp_nba_landed_on_nemesis", vars = { NBA.describe(entry) } }))
 	else

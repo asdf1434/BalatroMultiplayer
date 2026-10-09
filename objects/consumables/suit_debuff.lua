@@ -77,16 +77,16 @@ SMODS.Consumable({
 	set = "Attack",
 	-- Placeholder art: The Moon's sprite from the default (vanilla Tarot) atlas
 	pos = { x = 8, y = 1 },
-	cost = 4,
+	cost = 6,
 	unlocked = true,
 	discovered = true,
 	config = { extra = { chance = 0.75 } },
 	loc_vars = function(self, info_queue, card)
 		MP.UTILS.add_nemesis_info(info_queue)
-		return { vars = { math.floor(card.ability.extra.chance * 100 + 0.5) } }
+		return { vars = { math.floor(card.ability.extra.chance * 100 + 0.5), NBA.max_pending } }
 	end,
 	can_use = function(self, card)
-		return NBA.nemesis_present()
+		return NBA.can_send()
 	end,
 	use = function(self, card, area, copier)
 		NBA.send(KEY)

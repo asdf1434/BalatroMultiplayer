@@ -822,6 +822,7 @@ return {
 					"random {C:attention}suit{} are {C:red}debuffed{}",
 					"during your {X:purple,C:white}Nemesis'{}",
 					"next {C:attention}Blind{}",
+					"{C:inactive}(Max #2# attacks waiting){}",
 				},
 			},
 			c_mp_blind_inflation = {
@@ -829,7 +830,8 @@ return {
 				text = {
 					"{C:green}#1#%{} chance: your {X:purple,C:white}Nemesis'{}",
 					"next non-PvP {C:attention}Blind{}",
-					"requires {C:red}+#2#%{} chips",
+					"requires {C:attention}#2#%{} to {C:red}+#3#%{} chips",
+					"{C:inactive}(Max #4# attacks waiting){}",
 				},
 			},
 			c_mp_shrink = {
@@ -838,6 +840,7 @@ return {
 					"{C:green}#1#%{} chance: {C:red}-#2#{} hand size",
 					"during your {X:purple,C:white}Nemesis'{}",
 					"next {C:attention}Blind{}",
+					"{C:inactive}(Max #3# attacks waiting){}",
 				},
 			},
 			c_mp_fog = {
@@ -846,6 +849,7 @@ return {
 					"{C:green}#1#%{} chance: the first hand",
 					"of your {X:purple,C:white}Nemesis'{} next {C:attention}Blind{}",
 					"is drawn {C:attention}face down{}",
+					"{C:inactive}(Max #2# attacks waiting){}",
 				},
 			},
 		},
@@ -1607,11 +1611,12 @@ return {
 			k_mp_bounty_too_late = "Too late: the bounty expired",
 			k_mp_nba_incoming = "Incoming attacks",
 			k_mp_nba_entry_detail = "#1#: #2#",
-			k_mp_nba_inflation_detail = "+#1#% chips (non-PvP)",
+			k_mp_nba_inflation_detail = "#1#% chips (non-PvP)",
 			k_mp_nba_shrink_detail = "-#1# hand size",
 			k_mp_nba_incoming_from_nemesis = "Incoming on your next Blind: #1#",
 			k_mp_nba_sent_to_nemesis = "Sent to your Nemesis' next Blind: #1#",
 			k_mp_nba_not_in_run = "Nemesis is not in a run",
+			k_mp_nba_full = "Nemesis already has #1# attacks waiting",
 			k_mp_nba_landed = "Landed: #1#",
 			k_mp_nba_fizzled = "Fizzled: #1#",
 			k_mp_nba_landed_on_nemesis = "Your #1# landed",
