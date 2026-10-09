@@ -267,6 +267,10 @@ The most complex layer. `MP.SANDBOX` (defined in `layers/sandbox.lua`) manages a
 - `on_apply_bans` hook: idol selection (`select_random_idol` pseudorandomly picks one of two idol variants seeded on lobby code) + extra credit gating (bans sandbox EC jokers if `extracredit` mod is loaded).
 - Reworked joker list is Fisher-Yates shuffled at load time for randomized UI panel order.
 
+### Duel Bounty Race
+
+Mechanic of the `duel` layer, not a card; lobby option `duel_bounties` (default on). Logic in `overrides/duel_bounty.lua` (`MP.BOUNTY`), panel above the deck in `ui/game/duel_bounty.lua`. One bounty is live at a time: bounty 1 at game start, the next one when a boss PvP blind ends (`MP.GAME.end_pvp` turning true reaches both games together). Tier (easy/medium/hard, from `TIERS_BY_ANTE`), goal and goal option are picked statelessly with `pseudorandom(pseudohash("mp_duel_bounty_<index>_<part>_" .. seed))`, so both games agree without messages. Jackpot: an unclaimed bounty's reward is added to the next. The host's game decides the winner: guest sends `bounty_claim`, host records the first claimant (or "none" once expired) and answers `bounty_result` with the amount; host claims locally and sends `bounty_result`. Tunables are fields on `MP.BOUNTY`.
+
 ## Joker Implementation Model
 
 1. Register optional art via `SMODS.Atlas`, then call `SMODS.Joker` with metadata (rarity, cost, compat flags) plus `config.extra` to seed per-card state.
