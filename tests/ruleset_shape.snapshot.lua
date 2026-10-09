@@ -263,6 +263,7 @@ return {
     ["multiplayer_content"] = true,
     ["reworked_blinds"] = {},
     ["reworked_consumables"] = {
+      "c_mp_cripple",
       "c_mp_ouija_standard",
       "c_mp_tax_collector",
     },

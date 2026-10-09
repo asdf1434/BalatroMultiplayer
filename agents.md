@@ -244,7 +244,7 @@ Registration stores properties as `mp_<layer>_<prop>` on the center. `MP.LoadRew
 | **Sandbox** | sandbox | — | no (soft defaults) | Parallel joker pool, idol selection; seeds preview/order/lives, host can override |
 | **Experimental** | experimental, ranked, pressure_timer | Attrition | yes | Rebalance playtest — ranked-shaped + pressure-timer modifier |
 | **Legacy Ranked** | classic, ranked | Attrition | yes | Pre-MP-joker card pool, version-gated |
-| **Duel** | standard, duel | — | no | Standard plus Attack cards in the shop (e.g. Tax Collector) |
+| **Duel** | standard, duel | — | no | Standard plus Attack cards in the shop (e.g. Tax Collector, Cripple) |
 | **Vanilla** | *(none)* | — | no | No bans, no reworks, no MP jokers |
 | **Badlatro** | *(none)* | — | no | Heavy joker bans |
 | **MajorLeague** | *(none)* | Attrition | yes | Longer timer with forgiveness |
