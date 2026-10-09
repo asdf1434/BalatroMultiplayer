@@ -815,6 +815,39 @@ return {
 					"{C:inactive}(Jokers keep their progress){}",
 				},
 			},
+			c_mp_suit_debuff = {
+				name = "Suit Debuff",
+				text = {
+					"{C:green}#1#%{} chance: all cards of a",
+					"random {C:attention}suit{} are {C:red}debuffed{}",
+					"during your {X:purple,C:white}Nemesis'{}",
+					"next {C:attention}Blind{}",
+				},
+			},
+			c_mp_blind_inflation = {
+				name = "Blind Inflation",
+				text = {
+					"{C:green}#1#%{} chance: your {X:purple,C:white}Nemesis'{}",
+					"next non-PvP {C:attention}Blind{}",
+					"requires {C:red}+#2#%{} chips",
+				},
+			},
+			c_mp_shrink = {
+				name = "Shrink",
+				text = {
+					"{C:green}#1#%{} chance: {C:red}-#2#{} hand size",
+					"during your {X:purple,C:white}Nemesis'{}",
+					"next {C:attention}Blind{}",
+				},
+			},
+			c_mp_fog = {
+				name = "Fog",
+				text = {
+					"{C:green}#1#%{} chance: the first hand",
+					"of your {X:purple,C:white}Nemesis'{} next {C:attention}Blind{}",
+					"is drawn {C:attention}face down{}",
+				},
+			},
 		},
 		Blind = {
 			bl_mp_nemesis = {
@@ -1572,6 +1605,17 @@ return {
 			k_mp_bounty_won = "You claimed the bounty: +$#1#",
 			k_mp_bounty_lost = "Your Nemesis claimed the bounty",
 			k_mp_bounty_too_late = "Too late: the bounty expired",
+			k_mp_nba_incoming = "Incoming attacks",
+			k_mp_nba_entry_detail = "#1#: #2#",
+			k_mp_nba_inflation_detail = "+#1#% chips (non-PvP)",
+			k_mp_nba_shrink_detail = "-#1# hand size",
+			k_mp_nba_incoming_from_nemesis = "Incoming on your next Blind: #1#",
+			k_mp_nba_sent_to_nemesis = "Sent to your Nemesis' next Blind: #1#",
+			k_mp_nba_not_in_run = "Nemesis is not in a run",
+			k_mp_nba_landed = "Landed: #1#",
+			k_mp_nba_fizzled = "Fizzled: #1#",
+			k_mp_nba_landed_on_nemesis = "Your #1# landed",
+			k_mp_nba_fizzled_on_nemesis = "Your #1# fizzled",
 			k_ante_range = "Ante #1#-#2#", -- For example, "Ante 1-2"
 			k_ante_min = "Ante #1#+", -- For example, "Ante 2+"
 			k_credits_list = "#1# and many more!", -- #1# gets replaced with a list of names
