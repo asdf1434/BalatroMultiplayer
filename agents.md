@@ -114,6 +114,7 @@ Solo endurance — 1 life, no PvP blinds at all (all vanilla). Bans MP jokers an
 | `speedlatro_timer` | Per-round countdown timer replacing the normal PvP timer |
 | `ranked` | Version-gated, lobby locked |
 | `classic` | Pre-MP-joker-era card pool |
+| `duel` | Turns on Attack cards (consumables that act on the opponent) by raising `G.GAME.attack_rate` |
 
 **Modifier layers** (picked at runtime via `MP.MODIFIERS`, not baked into rulesets — see "Active context" below):
 
@@ -243,6 +244,7 @@ Registration stores properties as `mp_<layer>_<prop>` on the center. `MP.LoadRew
 | **Sandbox** | sandbox | — | no (soft defaults) | Parallel joker pool, idol selection; seeds preview/order/lives, host can override |
 | **Experimental** | experimental, ranked, pressure_timer | Attrition | yes | Rebalance playtest — ranked-shaped + pressure-timer modifier |
 | **Legacy Ranked** | classic, ranked | Attrition | yes | Pre-MP-joker card pool, version-gated |
+| **Duel** | standard, duel | — | no | Standard plus Attack cards in the shop (e.g. Tax Collector) |
 | **Vanilla** | *(none)* | — | no | No bans, no reworks, no MP jokers |
 | **Badlatro** | *(none)* | — | no | Heavy joker bans |
 | **MajorLeague** | *(none)* | Attrition | yes | Longer timer with forgiveness |
