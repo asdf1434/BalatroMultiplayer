@@ -10,6 +10,10 @@ MP.Layer("duel", {
 		"c_mp_tax_collector",
 		"c_mp_cripple",
 		"c_mp_joker_swap",
+		"c_mp_suit_debuff",
+		"c_mp_blind_inflation",
+		"c_mp_shrink",
+		"c_mp_fog",
 	},
 	on_apply_bans = function()
 		G.GAME.attack_rate = MP.DUEL.attack_shop_rate
