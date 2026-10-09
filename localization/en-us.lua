@@ -793,8 +793,8 @@ return {
 			c_mp_tax_collector = {
 				name = "Tax Collector",
 				text = {
-					"Take up to {C:money}$#1#{} from",
-					"your {X:purple,C:white}Nemesis{}",
+					"Take {C:money}#1#%{} to {C:money}#2#%{} of your",
+					"{X:purple,C:white}Nemesis{}' money",
 					"and gain the amount taken",
 				},
 			},
@@ -1536,8 +1536,8 @@ return {
 			k_ruleset_disabled_lovely_version = "Lovely #1# Required",
 			k_failed_to_join_lobby = "Failed to join lobby: #1#",
 			k_ante_number = "Ante #1#",
-			k_mp_taxed_by_nemesis = "Your Nemesis taxed you $#1#",
-			k_mp_taxed_nemesis = "Taxed your Nemesis $#1#",
+			k_mp_taxed_by_nemesis = "Your Nemesis taxed you #1#% ($#2#)",
+			k_mp_taxed_nemesis = "You taxed your Nemesis #1#% ($#2#)",
 			k_mp_crippled_nemesis = "Crippled your Nemesis' #1#",
 			k_mp_crippled_by_nemesis = "Your Nemesis crippled your #1#",
 			k_mp_cripple_no_jokers = "Your Nemesis has no Jokers",
