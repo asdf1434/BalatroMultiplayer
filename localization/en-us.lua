@@ -798,6 +798,14 @@ return {
 					"and gain the amount taken",
 				},
 			},
+			c_mp_cripple = {
+				name = "Cripple",
+				text = {
+					"A random {C:attention}Joker{} of your",
+					"{X:purple,C:white}Nemesis{} is {C:red}debuffed{}",
+					"during their next {C:attention}PvP Blind{}",
+				},
+			},
 		},
 		Blind = {
 			bl_mp_nemesis = {
@@ -981,6 +989,13 @@ return {
 				name = "Balanced",
 				text = {
 					"Earns {C:money}$4{} instead of {C:money}$3{}",
+				},
+			},
+			mp_sticker_crippled = {
+				name = "Crippled",
+				text = {
+					"{C:red}Debuffed{} during the",
+					"next {C:attention}PvP Blind{}",
 				},
 			},
 			undiscovered_attack = {
@@ -1186,6 +1201,7 @@ return {
 			mp_sticker_persistent = "Persistent",
 			mp_sticker_unreliable = "Unreliable",
 			mp_sticker_draining = "Draining",
+			mp_sticker_crippled = "Crippled",
 		},
 		dictionary = {
 			b_singleplayer = "Singleplayer",
@@ -1507,6 +1523,10 @@ return {
 			k_ante_number = "Ante #1#",
 			k_mp_taxed_by_nemesis = "Your Nemesis taxed you $#1#",
 			k_mp_taxed_nemesis = "Taxed your Nemesis $#1#",
+			k_mp_crippled_nemesis = "Crippled your Nemesis' #1#",
+			k_mp_crippled_by_nemesis = "Your Nemesis crippled your #1#",
+			k_mp_cripple_no_jokers = "Your Nemesis has no Jokers",
+			k_mp_cripple_all_crippled = "Your Nemesis' Jokers are all crippled",
 			k_ante_range = "Ante #1#-#2#", -- For example, "Ante 1-2"
 			k_ante_min = "Ante #1#+", -- For example, "Ante 2+"
 			k_credits_list = "#1# and many more!", -- #1# gets replaced with a list of names

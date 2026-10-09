@@ -8,6 +8,7 @@ MP.DUEL.attack_shop_rate = 2
 MP.Layer("duel", {
 	reworked_consumables = {
 		"c_mp_tax_collector",
+		"c_mp_cripple",
 	},
 	on_apply_bans = function()
 		G.GAME.attack_rate = MP.DUEL.attack_shop_rate
