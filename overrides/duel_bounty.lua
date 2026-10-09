@@ -198,6 +198,8 @@ MP.BOUNTY.GOALS = {
 -- Stateless seeded pick in 1..n: hash a new key, seed pseudorandom with the
 -- number. Same answer every call, on both games, and no RNG queue moves. With
 -- "different seeds" the runs have different seeds, so the lobby code is used.
+-- The key is shared on purpose (no MP.UTILS.player_seed_key): both players
+-- must see the same goal, unlike Attack rolls, which differ per player.
 local function pick(key, n)
 	local base = MP.LOBBY.config.different_seeds and MP.LOBBY.code or G.GAME.pseudorandom.seed
 	return pseudorandom(pseudohash("mp_duel_bounty_" .. key .. "_" .. tostring(base)), 1, n)

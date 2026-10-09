@@ -19,7 +19,7 @@ NBA.register(KEY, {
 	skips_pvp = true,
 	on_receive = function(entry, pending)
 		local extra = NBA.config(KEY)
-		entry.percent = pseudorandom("mp_blind_inflation", extra.min_percent, extra.max_percent)
+		entry.percent = pseudorandom(MP.UTILS.player_seed_key("mp_blind_inflation"), extra.min_percent, extra.max_percent)
 	end,
 	detail = function(entry)
 		return localize({

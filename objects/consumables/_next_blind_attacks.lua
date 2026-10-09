@@ -127,11 +127,12 @@ end
 
 -- The one place where an effect's chance is rolled. Runs on the Nemesis' game
 -- at the start of the blind the attack targets, once per copy. Each effect has
--- its own seed key. Probability modifiers (Oops! All 6s) do not apply.
+-- its own seed key, different per player so the two games' rolls do not mirror.
+-- Probability modifiers (Oops! All 6s) do not apply.
 local function roll_lands(key)
 	local chance = tonumber(NBA.config(key).chance) or 1
 	if chance >= 1 then return true end
-	return pseudorandom("mp_nba_chance_" .. key) < chance
+	return pseudorandom(MP.UTILS.player_seed_key("mp_nba_chance_" .. key)) < chance
 end
 
 -- Several messages can arrive at once (one result per copy), so each text

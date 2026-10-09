@@ -65,7 +65,7 @@ MP.register_mod_action("cripple_request", function(p)
 		MP.ACTIONS.modded(MP.id, "cripple_reply", { result = "all_crippled" })
 		return
 	end
-	local joker = pseudorandom_element(candidates, pseudoseed("mp_cripple"))
+	local joker = pseudorandom_element(candidates, pseudoseed(MP.UTILS.player_seed_key("mp_cripple")))
 	SMODS.Stickers[STICKER]:apply(joker, true)
 	joker:juice_up(0.5, 0.5)
 	local key = joker.config.center.key

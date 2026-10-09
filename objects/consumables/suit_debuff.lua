@@ -20,7 +20,7 @@ NBA.register(KEY, {
 			if not taken[suit] then choices[#choices + 1] = suit end
 		end
 		if #choices == 0 then choices = SUITS end
-		entry.suit = pseudorandom_element(choices, pseudoseed("mp_suit_debuff"))
+		entry.suit = pseudorandom_element(choices, pseudoseed(MP.UTILS.player_seed_key("mp_suit_debuff")))
 	end,
 	detail = function(entry)
 		if not SMODS.Suits[entry.suit] then return nil end
