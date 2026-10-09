@@ -346,7 +346,9 @@ SMODS.Consumable({
 	set = "Attack",
 	-- Placeholder art: The Lovers' sprite from the default (vanilla Tarot) atlas
 	pos = { x = 6, y = 0 },
-	cost = 4,
+	-- Twice the other Attack cards: it can take the Nemesis' best Joker, so it is
+	-- priced like a Rare Joker ($8, e.g. DNA or Baron).
+	cost = 8,
 	unlocked = true,
 	discovered = true,
 	loc_vars = function(self, info_queue, card)
