@@ -6,6 +6,9 @@ local KEY = "c_mp_fog"
 local NBA = MP.NEXT_BLIND_ATTACKS
 
 NBA.register(KEY, {
+	effect = function(entry)
+		return localize({ type = "variable", key = "k_mp_nba_effect_fog", vars = {} })
+	end,
 	apply = function(entries)
 		return { hands = #entries }
 	end,

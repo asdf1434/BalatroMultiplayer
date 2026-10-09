@@ -28,6 +28,17 @@ NBA.register(KEY, {
 			vars = { string.format("%+d", entry_percent(entry)) },
 		})
 	end,
+	short_name = "k_mp_nba_short_blind_inflation",
+	short = function(entry)
+		return string.format("%+d%%", entry_percent(entry))
+	end,
+	effect = function(entry)
+		return localize({
+			type = "variable",
+			key = "k_mp_nba_effect_blind_inflation",
+			vars = { string.format("%+d", entry_percent(entry)) },
+		})
+	end,
 	apply = function(entries)
 		local total = 0
 		for _, entry in ipairs(entries) do

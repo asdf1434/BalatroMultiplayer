@@ -14,8 +14,13 @@
 --
 -- State lives on the Nemesis' game in G.GAME.mp_next_blind, so a new run starts
 -- with an empty list:
---   pending = { { key = "c_mp_suit_debuff", suit = "Spades" }, ... }
---   active  = { [key] = state returned by the effect's apply() }
+--   pending        = { { key = "c_mp_suit_debuff", suit = "Spades" }, ... }
+--   active         = { [key] = state returned by the effect's apply() }
+--   active_entries = the entries that landed on the current blind (for the
+--                    Attacks panel, ui/game/duel_attacks_panel.lua)
+-- and on the user's game:
+--   sent = entries the Nemesis accepted ("pending" reply) whose result has not
+--          arrived yet (for the Attacks panel)
 --
 -- Timing rules:
 --   - Effects land in Blind:set_blind for a real new blind. An attack that
@@ -28,8 +33,13 @@
 -- Each card registers its effect with MP.NEXT_BLIND_ATTACKS.register(key, def):
 --   skips_pvp  (bool)                 never land on a PvP blind
 --   on_receive (entry, pending)       optional; add random data to the entry
---   detail     (entry) -> string|nil  optional; extra text for messages and the
---                                     incoming list (for example the suit)
+--   detail     (entry) -> string|nil  optional; extra text for messages (for
+--                                     example the suit)
+--   short_name string                 optional; localization key of a short
+--                                     name for the Attacks panel
+--   short      (entry) -> string|nil  optional; short data for the Attacks
+--                                     panel (for example "Spades" or "+20%")
+--   effect     (entry) -> string      full effect text for the panel's tooltip
 --   apply      (entries) -> state     the copies of this effect that landed, in
 --                                     arrival order; returns what undo needs
 --   undo       (state, leaving)       restore the game; leaving = true when the
@@ -44,8 +54,9 @@
 --   nemesis_pending  the Nemesis' pending count, sent with every reply and result
 --   unacked          attacks sent that have no reply yet
 -- and can_use() is false while nemesis_pending + unacked reaches the limit.
--- When the Nemesis drops out, messages can be lost, so both reset to 0; a later
--- attack over the limit is refused and refunded, so nothing gets stuck.
+-- When the Nemesis drops out, messages can be lost, so both reset to 0 (and the
+-- sent list is cleared); a later attack over the limit is refused and refunded,
+-- so nothing gets stuck.
 
 local NBA = {}
 MP.NEXT_BLIND_ATTACKS = NBA
@@ -73,7 +84,7 @@ end
 function NBA.state()
 	if not G.GAME then return nil end
 	G.GAME.mp_next_blind = G.GAME.mp_next_blind
-		or { pending = {}, active = {}, nemesis_pending = 0, unacked = 0 }
+		or { pending = {}, active = {}, active_entries = {}, sent = {}, nemesis_pending = 0, unacked = 0 }
 	return G.GAME.mp_next_blind
 end
 
@@ -115,6 +126,28 @@ end
 function NBA.name(key)
 	if not defs[key] then return "?" end
 	return localize({ type = "name_text", set = "Attack", key = key })
+end
+
+-- Short name and data for the Attacks panel: "Debuff", "Spades".
+function NBA.short_name(key)
+	local def = defs[key]
+	if def and def.short_name then return localize({ type = "variable", key = def.short_name, vars = {} }) end
+	return NBA.name(key)
+end
+
+function NBA.short(entry)
+	local def = defs[entry.key]
+	return def and def.short and def.short(entry) or nil
+end
+
+function NBA.effect(entry)
+	local def = defs[entry.key]
+	return def and def.effect and def.effect(entry) or NBA.name(entry.key)
+end
+
+-- Chance in whole percent, from this game's own card config.
+function NBA.chance_percent(key)
+	return math.floor((tonumber(NBA.config(key).chance) or 1) * 100 + 0.5)
 end
 
 -- "Shrink" or "Suit Debuff: Spades"
@@ -223,6 +256,7 @@ MP.register_mod_action("next_blind_attack_reply", function(p)
 	state.unacked = math.max(0, state.unacked - 1)
 	set_nemesis_pending(p)
 	if p.result == "pending" then
+		table.insert(state.sent, entry)
 		show_text(localize({ type = "variable", key = "k_mp_nba_sent_to_nemesis", vars = { NBA.describe(entry) } }))
 		return
 	end
@@ -230,10 +264,34 @@ MP.register_mod_action("next_blind_attack_reply", function(p)
 	if p.result == "full" then
 		show_text(localize({ type = "variable", key = "k_mp_nba_full", vars = { NBA.max_pending } }))
 	else
-		show_text(localize("k_mp_nba_not_in_run"))
+		show_text(localize({ type = "variable", key = "k_mp_nba_not_in_run", vars = {} }))
 	end
 	SMODS.add_card({ key = entry.key, area = G.consumeables })
 end, MP.id)
+
+-- Drop the sent entry a result is for: the first one with the same effect and
+-- data, else the first one with the same effect.
+local function forget_sent(entry)
+	local sent = NBA.state().sent
+	local same_key = nil
+	for i, other in ipairs(sent) do
+		if other.key == entry.key then
+			local same = true
+			for k, v in pairs(entry) do
+				if other[k] ~= v then same = false end
+			end
+			for k in pairs(other) do
+				if entry[k] == nil then same = false end
+			end
+			if same then
+				table.remove(sent, i)
+				return
+			end
+			same_key = same_key or i
+		end
+	end
+	if same_key then table.remove(sent, same_key) end
+end
 
 -- Runs on the user's game, once per copy, when the Nemesis' blind starts.
 MP.register_mod_action("next_blind_attack_result", function(p)
@@ -241,6 +299,7 @@ MP.register_mod_action("next_blind_attack_result", function(p)
 	local entry = entry_from_message(p)
 	if not defs[entry.key] then return end
 	set_nemesis_pending(p)
+	forget_sent(entry)
 	if p.result == "landed" then
 		show_text(localize({ type = "variable", key = "k_mp_nba_landed_on_nemesis", vars = { NBA.describe(entry) } }))
 	else
@@ -255,6 +314,7 @@ local function undo_active(leaving)
 	if not state then return end
 	local active = state.active
 	state.active = {}
+	state.active_entries = {}
 	for _, key in ipairs(order) do
 		if active[key] ~= nil then defs[key].undo(active[key], leaving) end
 	end
@@ -294,6 +354,7 @@ function Blind:set_blind(blind, reset, silent)
 			MP.ACTIONS.modded(MP.id, "next_blind_attack_result", result)
 			if hit then
 				landed[#landed + 1] = entry
+				table.insert(state.active_entries, entry)
 				landed_names[#landed_names + 1] = NBA.describe(entry)
 			else
 				fizzled_names[#fizzled_names + 1] = NBA.describe(entry)
@@ -314,9 +375,10 @@ end
 local nemesis_count_update_ref = Game.update
 function Game:update(dt)
 	local state = G.GAME and G.GAME.mp_next_blind
-	if state and (state.unacked > 0 or state.nemesis_pending > 0) and not NBA.nemesis_present() then
+	if state and (state.unacked > 0 or state.nemesis_pending > 0 or #state.sent > 0) and not NBA.nemesis_present() then
 		state.unacked = 0
 		state.nemesis_pending = 0
+		state.sent = {}
 	end
 	return nemesis_count_update_ref(self, dt)
 end
