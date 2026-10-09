@@ -1,4 +1,4 @@
--- Tax Collector: take a random 10-25% of the Nemesis' money (rounded down, no
+-- Tax Collector: take a random 10-40% of the Nemesis' money (rounded down, no
 -- minimum, no cap). Only the Nemesis' game knows their money, so this is a
 -- two-step exchange:
 --   1. user's game sends "tax_request" (no fields)
@@ -74,7 +74,7 @@ SMODS.Consumable({
 	cost = 4,
 	unlocked = true,
 	discovered = true,
-	config = { extra = { min_percent = 10, max_percent = 25 } },
+	config = { extra = { min_percent = 10, max_percent = 40 } },
 	loc_vars = function(self, info_queue, card)
 		MP.UTILS.add_nemesis_info(info_queue)
 		return { vars = { card.ability.extra.min_percent, card.ability.extra.max_percent } }
