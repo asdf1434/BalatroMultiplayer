@@ -1394,6 +1394,7 @@ return {
 			k_mp_joker_swap_no_jokers = "Nemesis has no Jokers that can be swapped",
 			k_mp_joker_swap_not_in_run = "Nemesis is not in a run",
 			k_mp_joker_swap_failed = "Joker Swap failed",
+			k_mp_joker_swap_cancelled = "Joker Swap cancelled: Nemesis left",
 			k_traditional = "Traditional",
 			k_traditional_description = "Multiplayer content without time pressure.\n\nIncludes Multiplayer jokers and balance changes,\nbut removes time-based mechanics for methodical play.\n\nTime-based jokers are banned.\nTimer is disabled.\n\n(See bans and reworks tabs for details)",
 			k_majorleague = "Major League",

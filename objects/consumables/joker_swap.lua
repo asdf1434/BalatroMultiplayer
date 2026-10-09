@@ -4,7 +4,8 @@
 -- Request / reply exchange (same shape as Tax Collector):
 --   1. user's game sends "joker_swap_request" with the full state of the chosen
 --      Joker. The Joker stays with the user and is locked (cannot be sold or used
---      in another swap) until the reply arrives or the lock times out.
+--      in another swap) until the swap is resolved: the reply arrives, or the
+--      Nemesis disconnects / the lobby or run ends (then no reply can come).
 --   2. Nemesis' game picks a random non-Eternal Joker of its own, removes it,
 --      adds the received Joker, and replies "joker_swap_reply" with the full state
 --      of the Joker it gave up.
@@ -17,11 +18,6 @@
 -- (lib/plain_data.lua). Received text is only ever JSON-decoded, never run.
 
 local json = require("json")
-
-MP.DUEL = MP.DUEL or {}
--- Seconds a Joker stays locked while waiting for the Nemesis' reply. A reply that
--- arrives after this still completes the swap.
-MP.DUEL.joker_swap_reply_timeout = 30
 
 -- Swaps this game started and is still waiting on, keyed by swap id.
 local pending_swaps = {}
@@ -60,8 +56,11 @@ local function is_phantom(card)
 end
 
 -- True while the Joker is promised to a swap that has not been answered yet.
+-- There is deliberately no time limit: if the lock ended while a reply was still
+-- on its way, the Joker could be sold or swapped again and then also be given away
+-- by the late reply, so it would exist twice.
 local function is_swap_locked(card)
-	return card.mp_swap_locked_until ~= nil and G.TIMERS.REAL < card.mp_swap_locked_until
+	return card.mp_swap_locked == true
 end
 
 -- A Joker that may leave this game in a swap (chosen by the user, or picked at
@@ -189,7 +188,7 @@ end
 -- its effects (hand size, Joker slots, ...) end now; the dissolve is visual only.
 -- This is not a sale and not a destruction, so no sell / destroy effects trigger.
 local function remove_swapped_joker(card)
-	card.mp_swap_locked_until = nil
+	card.mp_swap_locked = nil
 	card:remove_from_deck()
 	card:start_dissolve({ G.C.RED }, nil, 1.6)
 	if card.area then card.area:remove_card(card) end
@@ -229,7 +228,7 @@ local function start_joker_swap(card)
 	next_swap_id = next_swap_id + 1
 	local text = serialize_joker(card)
 	if not text then return false end
-	card.mp_swap_locked_until = G.TIMERS.REAL + MP.DUEL.joker_swap_reply_timeout
+	card.mp_swap_locked = true
 	pending_swaps[id] = { card = card, game = G.GAME }
 	MP.ACTIONS.modded(MP.id, "joker_swap_request", { swap_id = id, card = text })
 	return true
@@ -272,7 +271,7 @@ local function finish_joker_swap(p)
 	if not swap then return end
 	pending_swaps[id] = nil
 	local mine = swap.card
-	mine.mp_swap_locked_until = nil
+	mine.mp_swap_locked = nil
 	if swap.game ~= G.GAME or not in_run() then return end
 
 	if p.result ~= "ok" then
@@ -290,11 +289,36 @@ local function finish_joker_swap(p)
 		show_swap_text("k_mp_joker_swap_failed")
 		return
 	end
-	-- The chosen Joker may already be gone (destroyed, or sold after the lock
-	-- timed out); the received Joker is still added.
+	-- The chosen Joker may already be gone (destroyed by another card, e.g.
+	-- Madness); the received Joker is still added.
 	if mine.area == G.jokers and not mine.removed then remove_swapped_joker(mine) end
 	add_swapped_joker(received)
 	show_swap_text("k_mp_joker_swapped")
+end
+
+-- Ends every pending swap when no reply can arrive anymore: the Nemesis
+-- disconnected, the lobby closed, or this run ended. The Joker unlocks and stays
+-- with the user; the entry is dropped, so a reply that still shows up is ignored.
+local function cancel_unanswerable_swaps()
+	if next(pending_swaps) == nil then return end
+	local nemesis_gone = not nemesis_present()
+	for id, swap in pairs(pending_swaps) do
+		local run_over = swap.game ~= G.GAME or not in_run()
+		if nemesis_gone or run_over then
+			pending_swaps[id] = nil
+			swap.card.mp_swap_locked = nil
+			if not run_over then
+				show_swap_text("k_mp_joker_swap_cancelled")
+				SMODS.add_card({ key = "c_mp_joker_swap", area = G.consumeables })
+			end
+		end
+	end
+end
+
+local game_update_ref = Game.update
+function Game:update(dt)
+	game_update_ref(self, dt)
+	cancel_unanswerable_swaps()
 end
 
 -- Both handlers run in a queued event so a swap never lands in the middle of a
