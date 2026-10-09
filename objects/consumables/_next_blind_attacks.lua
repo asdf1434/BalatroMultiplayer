@@ -38,10 +38,14 @@
 -- (config.extra.chance, 1 = always) rolled in roll_lands() below.
 --
 -- Limit: at most NBA.max_pending attacks (any mix of cards) can be waiting on
--- the Nemesis. The attacker's game counts what it sent that has not landed or
--- fizzled yet (G.GAME.mp_next_blind.sent) and can_use() returns false at the
--- limit, so a card is never wasted. The Nemesis' game also refuses attacks over
--- the limit in case the two counts ever disagree.
+-- the Nemesis. The Nemesis' game is the authority: it refuses attacks over the
+-- limit (and when it is not in a run), and the attacker gets the card back.
+-- To grey out the cards before that happens, the attacker's game keeps
+--   nemesis_pending  the Nemesis' pending count, sent with every reply and result
+--   unacked          attacks sent that have no reply yet
+-- and can_use() is false while nemesis_pending + unacked reaches the limit.
+-- When the Nemesis drops out, messages can be lost, so both reset to 0; a later
+-- attack over the limit is refused and refunded, so nothing gets stuck.
 
 local NBA = {}
 MP.NEXT_BLIND_ATTACKS = NBA
@@ -68,7 +72,8 @@ end
 
 function NBA.state()
 	if not G.GAME then return nil end
-	G.GAME.mp_next_blind = G.GAME.mp_next_blind or { pending = {}, active = {}, sent = 0 }
+	G.GAME.mp_next_blind = G.GAME.mp_next_blind
+		or { pending = {}, active = {}, nemesis_pending = 0, unacked = 0 }
 	return G.GAME.mp_next_blind
 end
 
@@ -97,13 +102,14 @@ end
 -- can_use() for every next-blind Attack card.
 function NBA.can_send()
 	local state = NBA.state()
-	return NBA.nemesis_present() and state ~= nil and state.sent < NBA.max_pending
+	return NBA.nemesis_present() and state ~= nil and state.nemesis_pending + state.unacked < NBA.max_pending
 end
 
--- One of the attacks this game sent has been resolved (landed, fizzled, refused).
-local function sent_resolved()
+-- The Nemesis' count comes from the network, so keep it inside 0..max_pending.
+local function set_nemesis_pending(p)
 	local state = NBA.state()
-	if state then state.sent = math.max(0, state.sent - 1) end
+	local count = math.floor(tonumber(p.pending_count) or 0)
+	state.nemesis_pending = math.max(0, math.min(NBA.max_pending, count))
 end
 
 function NBA.name(key)
@@ -161,7 +167,7 @@ end
 -- Sender side: each card's use() is one call to this.
 function NBA.send(key)
 	local state = NBA.state()
-	if state then state.sent = state.sent + 1 end
+	if state then state.unacked = state.unacked + 1 end
 	MP.ACTIONS.modded(MP.id, "next_blind_attack", { effect = key })
 end
 
@@ -179,7 +185,7 @@ end
 local function entry_from_message(p)
 	local entry = { key = tostring(p.effect) }
 	for k, v in pairs(p) do
-		if k ~= "key" and k ~= "effect" and k ~= "result" and type(v) ~= "table" then entry[k] = v end
+		if k ~= "key" and k ~= "effect" and k ~= "result" and k ~= "pending_count" and type(v) ~= "table" then entry[k] = v end
 	end
 	return entry
 end
@@ -190,12 +196,12 @@ MP.register_mod_action("next_blind_attack", function(p)
 	local def = defs[key]
 	if not def then return end
 	if not in_run() then
-		MP.ACTIONS.modded(MP.id, "next_blind_attack_reply", { effect = key, result = "not_in_run" })
+		MP.ACTIONS.modded(MP.id, "next_blind_attack_reply", { effect = key, result = "not_in_run", pending_count = 0 })
 		return
 	end
 	local pending = NBA.pending()
 	if #pending >= NBA.max_pending then
-		MP.ACTIONS.modded(MP.id, "next_blind_attack_reply", { effect = key, result = "full" })
+		MP.ACTIONS.modded(MP.id, "next_blind_attack_reply", { effect = key, result = "full", pending_count = #pending })
 		return
 	end
 	local entry = { key = key }
@@ -204,6 +210,7 @@ MP.register_mod_action("next_blind_attack", function(p)
 	show_text(localize({ type = "variable", key = "k_mp_nba_incoming_from_nemesis", vars = { NBA.describe(entry) } }))
 	local reply = entry_fields(entry)
 	reply.result = "pending"
+	reply.pending_count = #pending
 	MP.ACTIONS.modded(MP.id, "next_blind_attack_reply", reply)
 end, MP.id)
 
@@ -212,15 +219,20 @@ MP.register_mod_action("next_blind_attack_reply", function(p)
 	if not in_run() then return end
 	local entry = entry_from_message(p)
 	if not defs[entry.key] then return end
+	local state = NBA.state()
+	state.unacked = math.max(0, state.unacked - 1)
+	set_nemesis_pending(p)
 	if p.result == "pending" then
 		show_text(localize({ type = "variable", key = "k_mp_nba_sent_to_nemesis", vars = { NBA.describe(entry) } }))
-	elseif p.result == "full" then
-		sent_resolved()
+		return
+	end
+	-- Refused: nothing was queued, so give the card back (like Joker Swap).
+	if p.result == "full" then
 		show_text(localize({ type = "variable", key = "k_mp_nba_full", vars = { NBA.max_pending } }))
 	else
-		sent_resolved()
 		show_text(localize("k_mp_nba_not_in_run"))
 	end
+	SMODS.add_card({ key = entry.key, area = G.consumeables })
 end, MP.id)
 
 -- Runs on the user's game, once per copy, when the Nemesis' blind starts.
@@ -228,7 +240,7 @@ MP.register_mod_action("next_blind_attack_result", function(p)
 	if not in_run() then return end
 	local entry = entry_from_message(p)
 	if not defs[entry.key] then return end
-	sent_resolved()
+	set_nemesis_pending(p)
 	if p.result == "landed" then
 		show_text(localize({ type = "variable", key = "k_mp_nba_landed_on_nemesis", vars = { NBA.describe(entry) } }))
 	else
@@ -278,6 +290,7 @@ function Blind:set_blind(blind, reset, silent)
 			local hit = roll_lands(key)
 			local result = entry_fields(entry)
 			result.result = hit and "landed" or "fizzled"
+			result.pending_count = #keep
 			MP.ACTIONS.modded(MP.id, "next_blind_attack_result", result)
 			if hit then
 				landed[#landed + 1] = entry
@@ -294,6 +307,18 @@ function Blind:set_blind(blind, reset, silent)
 	if #fizzled_names > 0 then
 		show_text(localize({ type = "variable", key = "k_mp_nba_fizzled", vars = { table.concat(fizzled_names, ", ") } }), G.C.GREEN)
 	end
+end
+
+-- Messages to or from a Nemesis who dropped out may be lost, so forget the
+-- counts kept for can_send(). The Nemesis' game still enforces the limit.
+local nemesis_count_update_ref = Game.update
+function Game:update(dt)
+	local state = G.GAME and G.GAME.mp_next_blind
+	if state and (state.unacked > 0 or state.nemesis_pending > 0) and not NBA.nemesis_present() then
+		state.unacked = 0
+		state.nemesis_pending = 0
+	end
+	return nemesis_count_update_ref(self, dt)
 end
 
 -- End of the blind: undo whatever landed on it. Safe to run twice.
