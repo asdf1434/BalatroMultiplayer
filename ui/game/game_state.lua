@@ -286,6 +286,55 @@ function Game:update_new_round(dt)
 	update_new_round_ref(self, dt)
 end
 
+-- Failed normal blind display. The wrapper above sets G.GAME.blind.chips to -1
+-- when a non-PvP blind is failed, so the run goes on (the server takes a life).
+-- This wrapper runs first and remembers the real target, so the blind HUD and the
+-- cash-out screen can show it (with a "Failed" marker) instead of "-1".
+local update_new_round_failed_ref = Game.update_new_round
+function Game:update_new_round(dt)
+	if
+		MP.is_mp_or_ghost()
+		and not G.STATE_COMPLETE
+		and not MP.is_pvp_boss()
+		and to_big(G.GAME.chips) < to_big(G.GAME.blind.chips)
+	then
+		MP.GAME.failed_blind_chips = G.GAME.blind.chips
+	end
+	update_new_round_failed_ref(self, dt)
+end
+
+-- Clear the remembered target when the next blind is set
+local blind_set_blind_failed_ref = Blind.set_blind
+function Blind:set_blind(blind, reset, silent)
+	if blind then MP.GAME.failed_blind_chips = nil end
+	blind_set_blind_failed_ref(self, blind, reset, silent)
+end
+
+-- Real target of the failed blind, or nil if the current blind was not failed
+function MP.UI.failed_blind_chips()
+	if MP.is_mp_or_ghost() and MP.GAME.failed_blind_chips then return MP.GAME.failed_blind_chips end
+end
+
+-- Red "Failed" text next to the target on the cash-out screen (lovely/end_round.toml)
+function MP.UI.failed_blind_marker(scale)
+	if not MP.UI.failed_blind_chips() then return nil end
+	return {
+		n = G.UIT.T,
+		config = { text = " " .. localize("k_mp_failed_blind"), scale = 0.5 * scale, colour = G.C.RED, shadow = true },
+	}
+end
+
+-- Blind HUD: SMODS rewrites chip_text from G.GAME.blind.chips every frame
+local blind_chip_UI_scale_ref = G.FUNCS.blind_chip_UI_scale
+G.FUNCS.blind_chip_UI_scale = function(e)
+	blind_chip_UI_scale_ref(e)
+	local failed_chips = MP.UI.failed_blind_chips()
+	if failed_chips and G.GAME.blind and G.GAME.blind.chips and to_big(G.GAME.blind.chips) < to_big(0) then
+		G.GAME.blind.chip_text = number_format(failed_chips)
+		e.config.scale = scale_number(failed_chips, 0.7, 100000)
+	end
+end
+
 local update_selecting_hand_ref = Game.update_selecting_hand
 function Game:update_selecting_hand(dt)
 	if

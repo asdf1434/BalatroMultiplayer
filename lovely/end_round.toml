@@ -238,3 +238,15 @@ end
 '''
 match_indent = true
 times = 1
+
+# Failed normal blind: show the real target (not the "-1" that keeps the run alive)
+# and a red "Failed" marker on the cash-out screen (ui/game/game_state.lua)
+[[patches]]
+[patches.pattern]
+target = "functions/common_events.lua"
+pattern = '''{n=G.UIT.T, config={text = G.GAME.blind.chip_text, scale = scale_number(G.GAME.blind.chips, scale, 100000), colour = G.C.RED, shadow = true}}'''
+position = 'at'
+payload = '''{n=G.UIT.T, config={text = MP.UI.failed_blind_chips() and number_format(MP.UI.failed_blind_chips()) or G.GAME.blind.chip_text, scale = scale_number(MP.UI.failed_blind_chips() or G.GAME.blind.chips, scale, 100000), colour = G.C.RED, shadow = true}},
+MP.UI.failed_blind_marker(scale)'''
+match_indent = true
+times = 1
