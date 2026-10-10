@@ -1580,6 +1580,8 @@ return {
 			k_mp_crippled_by_nemesis = "Your Nemesis crippled your #1#",
 			k_mp_cripple_no_jokers = "Your Nemesis has no Jokers",
 			k_mp_cripple_all_crippled = "Your Nemesis' Jokers are all crippled",
+			-- Failed normal blind marker on the cash-out screen (ui/game/game_state.lua)
+			k_mp_failed_blind = "Failed",
 			-- Duel bounty race (overrides/duel_bounty.lua, ui/game/duel_bounty.lua)
 			k_mp_bounty_title = " Bounty: $#1#",
 			k_mp_bounty_tier_easy = "Easy",
