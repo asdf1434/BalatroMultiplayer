@@ -1,8 +1,8 @@
 -- Duel Attacks panel: up to three short lines in the left HUD, under the
 -- Hands/Discards, money and Ante boxes.
---   Incoming: attacks waiting for this player's next blind (and Cripples
---             waiting for their next PvP blind)
---   Active:   attacks affecting the current blind
+--   Incoming: attacks waiting for this player's next blind or next shop (and
+--             Cripples waiting for their next PvP blind)
+--   Active:   attacks affecting the current blind or shop
 --   Sent:     this player's attacks still waiting on the Nemesis
 -- Each line is shown only when it has something; with all three empty the
 -- panel is hidden. Hovering the panel shows every attack's full effect.
