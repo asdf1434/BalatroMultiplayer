@@ -852,6 +852,56 @@ return {
 					"{C:inactive}(Max #2# attacks waiting){}",
 				},
 			},
+			-- Instant Attack cards (objects/consumables/_instant_attacks.lua)
+			c_mp_level_drain = {
+				name = "Level Drain",
+				text = {
+					"Your {X:purple,C:white}Nemesis'{} most played",
+					"{C:attention}poker hand{} loses {C:red}#1#{} level",
+					"{C:inactive}(Never below level 1){}",
+				},
+			},
+			c_mp_level_steal = {
+				name = "Level Steal",
+				text = {
+					"Take {C:attention}#1#{} level of your",
+					"{X:purple,C:white}Nemesis'{} most played",
+					"{C:attention}poker hand{} and add it",
+					"to your own hand of that type",
+					"{C:inactive}(Nothing if theirs is level 1){}",
+				},
+			},
+			c_mp_level_swap = {
+				name = "Level Swap",
+				text = {
+					"Trade levels of your",
+					"{X:purple,C:white}Nemesis'{} most played",
+					"{C:attention}poker hand{} with them",
+				},
+			},
+			c_mp_wallet_swap = {
+				name = "Wallet Swap",
+				text = {
+					"Trade all your {C:money}money{}",
+					"with your {X:purple,C:white}Nemesis{}",
+				},
+			},
+			c_mp_pollute = {
+				name = "Pollute",
+				text = {
+					"Add {C:attention}#1#{} {C:attention}Stone Cards{}",
+					"to your {X:purple,C:white}Nemesis'{} deck",
+				},
+			},
+			c_mp_curse = {
+				name = "Curse",
+				text = {
+					"A random {C:attention}Joker{} of your",
+					"{X:purple,C:white}Nemesis{} becomes {C:attention}Perishable{}",
+					"{C:inactive}(Debuffed after #1# rounds){}",
+					"{C:inactive}(Skips Eternal and Perishable){}",
+				},
+			},
 		},
 		Blind = {
 			bl_mp_nemesis = {
@@ -1580,6 +1630,28 @@ return {
 			k_mp_crippled_by_nemesis = "Your Nemesis crippled your #1#",
 			k_mp_cripple_no_jokers = "Your Nemesis has no Jokers",
 			k_mp_cripple_all_crippled = "Your Nemesis' Jokers are all crippled",
+			-- Instant Attack cards (objects/consumables/_instant_attacks.lua)
+			k_mp_attack_not_in_run = "Nemesis is not in a run",
+			k_mp_level_drained_by_nemesis = "Your Nemesis drained your #1# to level #2#",
+			k_mp_level_drained_nemesis = "Drained your Nemesis' #1# to level #2#",
+			k_mp_level_drain_min_by_nemesis = "Level Drain failed: your #1# is level 1",
+			k_mp_level_min_nemesis = "Your Nemesis' #1# is already level 1",
+			k_mp_level_stolen_by_nemesis = "Your Nemesis stole #1# level of your #2#",
+			k_mp_level_stolen_nemesis = "Stole #1# level of your Nemesis' #2#",
+			k_mp_level_steal_min_by_nemesis = "Level Steal failed: your #1# is level 1",
+			k_mp_level_swapped_by_nemesis = "Level Swap: your #1# level #2# to #3#",
+			k_mp_level_swapped_nemesis = "Level Swap: your #1# level #2# to #3#",
+			k_mp_level_swap_failed = "Level Swap failed",
+			k_mp_wallet_swapped_by_nemesis = "Wallet Swap: your $#1# became $#2#",
+			k_mp_wallet_swapped_nemesis = "Wallet Swap: your $#1# became $#2#",
+			k_mp_wallet_swap_busy = "Wallet Swaps crossed: card returned",
+			k_mp_wallet_swap_failed = "Wallet Swap failed",
+			k_mp_polluted_by_nemesis = "Your Nemesis added #1# Stone Cards to your deck",
+			k_mp_polluted_nemesis = "Added #1# Stone Cards to your Nemesis' deck",
+			k_mp_cursed_by_nemesis = "Your Nemesis cursed your #1#",
+			k_mp_cursed_nemesis = "Cursed your Nemesis' #1#",
+			k_mp_curse_none_by_nemesis = "Curse failed: no Joker could be cursed",
+			k_mp_curse_none_nemesis = "Curse failed: no Joker could be cursed",
 			-- Failed normal blind marker on the cash-out screen (ui/game/game_state.lua)
 			k_mp_failed_blind = "Failed",
 			-- Duel bounty race (overrides/duel_bounty.lua, ui/game/duel_bounty.lua)

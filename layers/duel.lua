@@ -14,6 +14,13 @@ MP.Layer("duel", {
 		"c_mp_blind_inflation",
 		"c_mp_shrink",
 		"c_mp_fog",
+		-- Instant Attack cards
+		"c_mp_level_drain",
+		"c_mp_level_steal",
+		"c_mp_level_swap",
+		"c_mp_wallet_swap",
+		"c_mp_pollute",
+		"c_mp_curse",
 	},
 	on_apply_bans = function()
 		G.GAME.attack_rate = MP.DUEL.attack_shop_rate
