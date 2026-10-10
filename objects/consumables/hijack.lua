@@ -5,13 +5,16 @@
 -- Request / reply exchange:
 --   1. user's game sends "hijack_request"
 --   2. Nemesis' game picks a random Joker and replies "hijack_reply" with its
---      full state (so the copy reflects the Joker as it is now)
+--      full state (so the copy reflects the Joker as it is now). The Nemesis is
+--      not told: they only find out when it is too late (step 4 / 5)
 --   3. user's game stores the copy in G.GAME.mp_hijack.pending (shown as
 --      Incoming in the Attacks panel)
 --   4. at the start of the user's next real Blind (Blind:set_blind, like the
 --      next-blind attacks), each pending copy rolls its chance on the user's
---      game. A copy that lands joins the user's Jokers (shown as Active)
---   5. end_round removes every copy
+--      game. A copy that lands joins the user's Jokers (shown as Active). For
+--      a copy that fails, "hijack_fizzled" tells the Nemesis it was tried
+--   5. end_round removes every copy, and "hijack_revealed" tells the Nemesis
+--      which of their Jokers was used against them
 -- If the Nemesis has no Jokers (or is not in a run), nothing is copied and the
 -- user gets the Hijack back.
 --
@@ -128,10 +131,7 @@ local function answer_hijack(p)
 	local picked = pseudorandom_element(eligible, pseudoseed(MP.UTILS.player_seed_key("mp_hijack")))
 	local card_text = CT.serialize(picked)
 	if not card_text then return reply("bad_card") end
-	local key = picked.config.center.key
-	picked:juice_up(0.5, 0.5)
-	show_hijack_text(text("k_mp_hijacked_by_nemesis", { joker_name(key) }))
-	reply("ok", key, card_text)
+	reply("ok", picked.config.center.key, card_text)
 end
 
 local FAILURE_TEXT = {
@@ -167,6 +167,18 @@ MP.register_mod_action("hijack_request", function(p)
 			return true
 		end,
 	}))
+end, MP.id)
+
+-- Runs on the Nemesis' game: the user's Blind ended with the copy, or the
+-- copy's chance failed.
+MP.register_mod_action("hijack_revealed", function(p)
+	if not in_run() then return end
+	show_hijack_text(text("k_mp_hijack_revealed", { joker_name(tostring(p.joker)) }))
+end, MP.id)
+
+MP.register_mod_action("hijack_fizzled", function(p)
+	if not in_run() then return end
+	show_hijack_text(text("k_mp_hijack_tried", { joker_name(tostring(p.joker)) }), G.C.UI.TEXT_INACTIVE)
 end, MP.id)
 
 MP.register_mod_action("hijack_reply", function(p)
@@ -236,8 +248,12 @@ function Blind:set_blind(blind, reset, silent)
 		if card then
 			add_copy(card)
 			landed[#landed + 1] = name
+			-- Kept here so the Nemesis still hears about it if the copy is sold.
+			state.revealed = state.revealed or {}
+			table.insert(state.revealed, entry.key)
 		else
 			fizzled[#fizzled + 1] = name
+			MP.ACTIONS.modded(MP.id, "hijack_fizzled", { joker = entry.key })
 		end
 	end
 	if #landed > 0 then show_hijack_text(text("k_mp_hijack_landed", { table.concat(landed, ", ") })) end
@@ -256,11 +272,19 @@ function Blind:set_blind(blind, reset, silent)
 	end
 end
 
--- End of the Blind: every copy disappears, before end-of-round effects run.
+-- End of the Blind: every copy disappears, before end-of-round effects run,
+-- and the Nemesis learns which of their Jokers was used.
 local end_round_ref = end_round
 function end_round()
 	for _, card in ipairs(MP.HIJACK.active_copies()) do
 		remove_copy(card)
+	end
+	local state = G.GAME and G.GAME.mp_hijack
+	if state and state.revealed then
+		for _, key in ipairs(state.revealed) do
+			MP.ACTIONS.modded(MP.id, "hijack_revealed", { joker = key })
+		end
+		state.revealed = nil
 	end
 	return end_round_ref()
 end
