@@ -67,3 +67,11 @@ changes it.
 Play one real multiplayer match, then open the Lovely log. Filter the `MP_RLOG:`
 (positional) and `Client sent message:` (human) lines and confirm they mirror
 each action event-for-event.
+
+## Card Transfer
+
+`test_card_transfer.lua` checks `lib/card_transfer.lua` (used by Joker Swap, Pickpocket and Hijack): local fields are dropped when a card is packed, and received data is only accepted for a known card of the expected kind (Joker or consumable) with a known edition. It needs the JSON library on `LUA_PATH` and skips otherwise:
+
+```bash
+LUA_PATH="$HOME/Library/Application Support/Balatro/Mods/smods/libs/json/?.lua;;" lua tests/test_card_transfer.lua
+```

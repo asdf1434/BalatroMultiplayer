@@ -20,6 +20,8 @@ local function can_be_cursed(card)
 		and not card.removed
 		and not card.ability.perishable
 		and not (card.edition and card.edition.type == "mp_phantom")
+		-- Hijack's temporary copies vanish when the Blind ends
+		and not card.ability.mp_hijack_copy
 		and not is_eternal(card)
 end
 

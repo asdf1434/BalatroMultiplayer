@@ -902,6 +902,24 @@ return {
 					"{C:inactive}(Skips Eternal and Perishable){}",
 				},
 			},
+			-- Card-moving attacks (objects/consumables/pickpocket.lua, hijack.lua)
+			c_mp_pickpocket = {
+				name = "Pickpocket",
+				text = {
+					"Take a random {C:attention}consumable{}",
+					"from your {X:purple,C:white}Nemesis{}",
+					"{C:inactive}(Keeps its edition){}",
+				},
+			},
+			c_mp_hijack = {
+				name = "Hijack",
+				text = {
+					"{C:green}#1#%{} chance: get a temporary",
+					"copy of a random {C:attention}Joker{} of",
+					"your {X:purple,C:white}Nemesis{} for your",
+					"next {C:attention}Blind{}",
+				},
+			},
 		},
 		Blind = {
 			bl_mp_nemesis = {
@@ -1092,6 +1110,14 @@ return {
 				text = {
 					"{C:red}Debuffed{} during the",
 					"next {C:attention}PvP Blind{}",
+				},
+			},
+			mp_sticker_hijacked = {
+				name = "Hijacked",
+				text = {
+					"Temporary copy: takes no",
+					"{C:attention}Joker{} slot, sells for {C:money}$0{},",
+					"disappears when this {C:attention}Blind{} ends",
 				},
 			},
 			undiscovered_attack = {
@@ -1298,6 +1324,7 @@ return {
 			mp_sticker_unreliable = "Unreliable",
 			mp_sticker_draining = "Draining",
 			mp_sticker_crippled = "Crippled",
+			mp_sticker_hijacked = "Hijacked",
 		},
 		dictionary = {
 			b_singleplayer = "Singleplayer",
@@ -1714,6 +1741,21 @@ return {
 			k_mp_cripple_effect_incoming = "#1# debuffed in your next PvP Blind",
 			k_mp_cripple_effect_active = "#1# debuffed this Blind",
 			k_mp_cripple_effect_sent = "#1# debuffed in their next PvP Blind",
+			-- Card-moving attacks (objects/consumables/pickpocket.lua, hijack.lua)
+			k_mp_pickpocketed_nemesis = "You took your Nemesis' #1#",
+			k_mp_pickpocketed_by_nemesis = "Your Nemesis took your #1#",
+			k_mp_pickpocket_empty = "Your Nemesis has no consumables",
+			k_mp_pickpocket_not_in_run = "Nemesis is not in a run",
+			k_mp_pickpocket_failed = "Pickpocket failed",
+			k_mp_hijacked_by_nemesis = "Your Nemesis hijacked a copy of your #1#",
+			k_mp_hijack_incoming = "Hijacked #1#: arrives at your next Blind",
+			k_mp_hijack_no_jokers = "Your Nemesis has no Jokers",
+			k_mp_hijack_not_in_run = "Nemesis is not in a run",
+			k_mp_hijack_failed = "Hijack failed",
+			k_mp_hijack_landed = "Hijack landed: #1#",
+			k_mp_hijack_fizzled = "Hijack fizzled: #1#",
+			k_mp_hijack_effect_incoming = "copy of #1# for your next Blind",
+			k_mp_hijack_effect_active = "copy of #1# this Blind",
 			k_ante_range = "Ante #1#-#2#", -- For example, "Ante 1-2"
 			k_ante_min = "Ante #1#+", -- For example, "Ante 2+"
 			k_credits_list = "#1# and many more!", -- #1# gets replaced with a list of names

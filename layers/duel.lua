@@ -21,6 +21,9 @@ MP.Layer("duel", {
 		"c_mp_wallet_swap",
 		"c_mp_pollute",
 		"c_mp_curse",
+		-- card-moving attacks
+		"c_mp_pickpocket",
+		"c_mp_hijack",
 	},
 	on_apply_bans = function()
 		G.GAME.attack_rate = MP.DUEL.attack_shop_rate

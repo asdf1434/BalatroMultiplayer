@@ -73,7 +73,8 @@ MP.register_mod_action("cripple_request", function(p)
 	end
 	local candidates = {}
 	for _, joker in ipairs(G.jokers.cards) do
-		if not joker.ability[STICKER] then candidates[#candidates + 1] = joker end
+		-- Hijack's temporary copies vanish before the next PvP blind
+		if not joker.ability[STICKER] and not joker.ability.mp_hijack_copy then candidates[#candidates + 1] = joker end
 	end
 	if #candidates == 0 then
 		MP.ACTIONS.modded(MP.id, "cripple_reply", { result = "all_crippled" })

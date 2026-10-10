@@ -6,8 +6,9 @@
 --   Sent:     this player's attacks still waiting on the Nemesis
 -- Each line is shown only when it has something; with all three empty the
 -- panel is hidden. Hovering the panel shows every attack's full effect.
--- Data comes from objects/consumables/_next_blind_attacks.lua (MP.NEXT_BLIND_ATTACKS)
--- and objects/consumables/cripple.lua (MP.CRIPPLE).
+-- Data comes from objects/consumables/_next_blind_attacks.lua (MP.NEXT_BLIND_ATTACKS),
+-- objects/consumables/cripple.lua (MP.CRIPPLE) and objects/consumables/hijack.lua
+-- (MP.HIJACK: the user's own temporary Joker copies, Incoming and Active).
 --
 -- Placement: in a lobby the button column (Run Info, Options, Lobby Info) is
 -- taller than the round column next to it, so the round column has spare room
@@ -86,6 +87,19 @@ local function cripple_item(joker_key, effect_key)
 	}
 end
 
+local function hijack_item(joker_key, effect_key, with_chance)
+	local joker = MP.HIJACK.joker_name(joker_key)
+	local name = localize({ type = "name_text", set = "Attack", key = MP.HIJACK.key })
+	local effect = text(effect_key, { joker })
+	local tip
+	if with_chance then
+		tip = text("k_mp_attacks_tip_chance", { name, effect, MP.HIJACK.chance_percent() })
+	else
+		tip = text("k_mp_attacks_tip_line", { name, effect })
+	end
+	return { group = MP.HIJACK.key, name = name, short = joker, tip = tip }
+end
+
 local function collect()
 	local items = { incoming = {}, active = {}, sent = {} }
 	local NBA = MP.NEXT_BLIND_ATTACKS
@@ -111,6 +125,14 @@ local function collect()
 		end
 		for _, joker_key in ipairs(G.GAME.mp_cripple_sent or {}) do
 			table.insert(items.sent, cripple_item(joker_key, "k_mp_cripple_effect_sent"))
+		end
+	end
+	if MP.HIJACK then
+		for _, entry in ipairs(G.GAME.mp_hijack and G.GAME.mp_hijack.pending or {}) do
+			table.insert(items.incoming, hijack_item(entry.key, "k_mp_hijack_effect_incoming", true))
+		end
+		for _, card in ipairs(MP.HIJACK.active_copies()) do
+			table.insert(items.active, hijack_item(card.config.center.key, "k_mp_hijack_effect_active", false))
 		end
 	end
 	return items
