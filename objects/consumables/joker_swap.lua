@@ -13,11 +13,8 @@
 -- If the Nemesis cannot swap (no Jokers, only Eternal ones, not in a run), the
 -- reply says why, nothing moves, and the user gets the Joker Swap card back.
 --
--- Joker state is Balatro's own save data (Card:save / Card:load, as used when a
--- run is saved). It travels as a JSON string built by MP.UTILS.to_plain_data
--- (lib/plain_data.lua). Received text is only ever JSON-decoded, never run.
-
-local json = require("json")
+-- Joker state travels as JSON text built by lib/card_transfer.lua (Balatro's
+-- own save data). Received text is only ever JSON-decoded, never run.
 
 -- Swaps this game started and is still waiting on, keyed by swap id.
 local pending_swaps = {}
@@ -64,12 +61,13 @@ local function is_swap_locked(card)
 end
 
 -- A Joker that may leave this game in a swap (chosen by the user, or picked at
--- random when the Nemesis swaps with us).
+-- random when the Nemesis swaps with us). Hijack's temporary copies stay.
 local function can_be_swapped(card)
 	return card.ability
 		and card.ability.set == "Joker"
 		and not card.removed
 		and not is_phantom(card)
+		and not card.ability.mp_hijack_copy
 		and not is_eternal(card)
 		and not is_swap_locked(card)
 end
@@ -81,103 +79,21 @@ function Card:can_sell_card(context)
 end
 
 ----------------------------------------------------------------------------
--- Joker state <-> network text
+-- Joker state <-> network text (lib/card_transfer.lua)
 ----------------------------------------------------------------------------
 
--- Fields of Card:save() that describe this game's copy of the card (position,
--- selection, hooks already run, IDs) rather than the Joker itself.
-local LOCAL_ONLY_FIELDS = {
-	"sort_id",
-	"highlighted",
-	"added_to_deck",
-	"joker_added_to_deck_but_debuffed",
-	"debuff",
-	"rank",
-	"pinned",
-	"unique_val",
-	"unique_val__saved_ID",
-	"playing_card",
-	"shop_voucher",
-}
+local CT = MP.CARD_TRANSFER
 
--- Returns a JSON string with the Joker's full save data, or nil.
 local function serialize_joker(card)
-	local saved = {}
-	for k, v in pairs(card:save()) do
-		saved[k] = v
-	end
-	for _, k in ipairs(LOCAL_ONLY_FIELDS) do
-		saved[k] = nil
-	end
-	local plain = MP.UTILS.to_plain_data(saved)
-	if not plain then return nil end
-	local ok, text = pcall(json.encode, plain)
-	if ok then return text end
-	return nil
+	return CT.serialize(card)
 end
 
-local function optional_table(v)
-	return v == nil or type(v) == "table"
-end
-
--- Decodes and checks received Joker data. Returns the save table or nil.
--- Rejects anything this game cannot build: unknown Joker key, unknown edition,
--- wrong field types.
 local function decode_joker_data(text)
-	if type(text) ~= "string" then return nil end
-	local ok, plain = pcall(json.decode, text)
-	if not ok then return nil end
-	local data = MP.UTILS.from_plain_data(plain)
-	if type(data) ~= "table" or type(data.save_fields) ~= "table" then return nil end
-
-	local center = G.P_CENTERS[data.save_fields.center]
-	if type(data.save_fields.center) ~= "string" or not center or center.set ~= "Joker" then return nil end
-	if type(data.ability) ~= "table" then return nil end
-	if data.edition ~= nil then
-		if type(data.edition) ~= "table" or type(data.edition.type) ~= "string" then return nil end
-		if not G.P_CENTERS["e_" .. data.edition.type] or data.edition.type == "mp_phantom" then return nil end
-	end
-	if not (optional_table(data.params) and optional_table(data.base)) then return nil end
-	if not (optional_table(data.ignore_base_shader) and optional_table(data.ignore_shadow)) then return nil end
-
-	for _, k in ipairs(LOCAL_ONLY_FIELDS) do
-		data[k] = nil
-	end
-	data.save_fields.card = nil
-	data.params = data.params or {}
-	data.facing = "front"
-	data.sprite_facing = "front"
-	-- Debuffs belong to the game the Joker left; this game recomputes its own.
-	data.ability.debuff_sources = {}
-	return data
+	return CT.decode(text, "joker")
 end
 
--- Throws away a card built by build_joker_from_data that was never added.
-local function discard_built_joker(card)
-	card.added_to_deck = nil
-	card.states.visible = false
-	-- Same trick as the phantom code: a fake menu skips Card:remove's
-	-- used_jokers bookkeeping, which would otherwise change the shop pool.
-	local menu = G.OVERLAY_MENU
-	G.OVERLAY_MENU = G.OVERLAY_MENU or true
-	pcall(card.remove, card)
-	G.OVERLAY_MENU = menu
-end
-
--- Creates a Card from decoded save data, without adding it to the Jokers area.
--- Returns the card or nil.
 local function build_joker_from_data(data)
-	local card = Card(G.jokers.T.x + G.jokers.T.w / 2, G.jokers.T.y, G.CARD_W, G.CARD_H, G.P_CENTERS.j_joker, G.P_CENTERS.c_base)
-	local sort_id = card.sort_id
-	local ok = pcall(card.load, card, data)
-	if not ok then
-		discard_built_joker(card)
-		return nil
-	end
-	-- Card:load copies sort_id from the save data; keep this game's fresh one.
-	card.sort_id = sort_id
-	card:set_cost()
-	return card
+	return CT.build(data, G.jokers)
 end
 
 ----------------------------------------------------------------------------
