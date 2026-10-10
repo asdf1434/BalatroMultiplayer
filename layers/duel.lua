@@ -21,6 +21,10 @@ MP.Layer("duel", {
 		"c_mp_wallet_swap",
 		"c_mp_pollute",
 		"c_mp_curse",
+		-- Delayed attacks: next shop (Price Hike, Shoplift) and next blind (Mirage)
+		"c_mp_price_hike",
+		"c_mp_shoplift",
+		"c_mp_mirage",
 	},
 	on_apply_bans = function()
 		G.GAME.attack_rate = MP.DUEL.attack_shop_rate

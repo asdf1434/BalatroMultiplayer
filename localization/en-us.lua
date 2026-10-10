@@ -902,6 +902,35 @@ return {
 					"{C:inactive}(Skips Eternal and Perishable){}",
 				},
 			},
+			-- Delayed attacks: Price Hike, Shoplift, Mirage
+			c_mp_price_hike = {
+				name = "Price Hike",
+				text = {
+					"{C:green}#1#%{} chance: everything in",
+					"your {X:purple,C:white}Nemesis'{} next {C:attention}shop{}",
+					"costs {C:money}$#2#{} more",
+					"{C:inactive}(Max #3# attacks waiting){}",
+				},
+			},
+			c_mp_shoplift = {
+				name = "Shoplift",
+				text = {
+					"{C:green}#1#%{} chance: your {X:purple,C:white}Nemesis'{}",
+					"next {C:attention}shop{} has {C:red}#2#{} fewer",
+					"card slot {C:inactive}(min 1){}",
+					"{C:inactive}(Max #3# attacks waiting){}",
+				},
+			},
+			c_mp_mirage = {
+				name = "Mirage",
+				text = {
+					"{C:green}#1#%{} chance: in your {X:purple,C:white}Nemesis'{}",
+					"next {C:attention}Blind{}, a random {C:attention}Joker{}",
+					"is {C:red}destroyed{} before their",
+					"{C:attention}last hand{} scores",
+					"{C:inactive}(Max #2# attacks waiting){}",
+				},
+			},
 		},
 		Blind = {
 			bl_mp_nemesis = {
@@ -1698,8 +1727,8 @@ return {
 			k_mp_attacks_incoming = "Incoming:",
 			k_mp_attacks_active = "Active:",
 			k_mp_attacks_sent = "Sent:",
-			k_mp_attacks_tip_incoming = "Incoming (your next Blind):",
-			k_mp_attacks_tip_active = "Active (this Blind):",
+			k_mp_attacks_tip_incoming = "Incoming (your next Blind or shop):",
+			k_mp_attacks_tip_active = "Active (this Blind or shop):",
 			k_mp_attacks_tip_sent = "Sent (waiting on your Nemesis):",
 			k_mp_attacks_group_count = "#1# x#2#",
 			k_mp_attacks_group_detail = "#1# #2#",
@@ -1711,6 +1740,19 @@ return {
 			k_mp_nba_effect_blind_inflation = "#1#% Blind chips (never on a PvP Blind)",
 			k_mp_nba_effect_shrink = "-#1# hand size",
 			k_mp_nba_effect_fog = "first hand drawn face down",
+			-- Delayed attacks: Price Hike, Shoplift, Mirage
+			k_mp_nba_incoming_shop_from_nemesis = "Incoming in your next shop: #1#",
+			k_mp_nba_sent_to_nemesis_shop = "Sent to your Nemesis' next shop: #1#",
+			k_mp_nba_price_hike_detail = "+$#1# prices",
+			k_mp_nba_shoplift_detail = "-#1# shop slot",
+			k_mp_nba_effect_price_hike = "+$#1# to every price in the next shop",
+			k_mp_nba_effect_shoplift = "-#1# card slot in the next shop (min 1)",
+			k_mp_nba_effect_mirage = "a random Joker is destroyed before the last hand scores",
+			k_mp_mirage_destroyed = "Mirage destroyed your #1#",
+			k_mp_mirage_destroyed_on_nemesis = "Your Mirage destroyed their #1#",
+			k_mp_mirage_nothing = "Mirage found no Joker to destroy",
+			k_mp_mirage_nothing_on_nemesis = "Your Mirage found no Joker to destroy",
+			k_mp_mirage_faded = "Mirage faded",
 			k_mp_cripple_effect_incoming = "#1# debuffed in your next PvP Blind",
 			k_mp_cripple_effect_active = "#1# debuffed this Blind",
 			k_mp_cripple_effect_sent = "#1# debuffed in their next PvP Blind",

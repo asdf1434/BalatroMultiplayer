@@ -30,7 +30,18 @@
 --     PvP blinds.
 --   - end_round undoes everything that landed (hand size, debuffs, ...).
 --
+-- "Next shop" attacks (Price Hike, Shoplift) use the same list, limit, chance
+-- roll, messages and refunds, but target the Nemesis' next shop instead:
+--   - Effects land when a new shop is created (Game:update_shop, before the
+--     shop's card areas exist and before they are filled). An attack that
+--     arrives during a shop waits for the next one. Returning to the shop
+--     from a Booster Pack is the same shop visit, so nothing lands there.
+--   - Leaving the shop (G.FUNCS.toggle_shop) undoes them.
+--   - Blinds do not land them, and shops do not land "next blind" attacks.
+--
 -- Each card registers its effect with MP.NEXT_BLIND_ATTACKS.register(key, def):
+--   target     "blind" | "shop"       optional, default "blind"; what the
+--                                     attack lands on
 --   skips_pvp  (bool)                 never land on a PvP blind
 --   on_receive (entry, pending)       optional; add random data to the entry
 --   detail     (entry) -> string|nil  optional; extra text for messages (for
@@ -73,6 +84,20 @@ end
 
 function NBA.get_def(key)
 	return defs[key]
+end
+
+function NBA.target(key)
+	return defs[key] and defs[key].target or "blind"
+end
+
+-- Messages that name what the attack waits for.
+local TARGET_TEXT = {
+	blind = { incoming = "k_mp_nba_incoming_from_nemesis", sent = "k_mp_nba_sent_to_nemesis" },
+	shop = { incoming = "k_mp_nba_incoming_shop_from_nemesis", sent = "k_mp_nba_sent_to_nemesis_shop" },
+}
+
+local function target_text(key, which)
+	return TARGET_TEXT[NBA.target(key)][which]
 end
 
 -- Card config values (read from this game's own copy, never from the network).
@@ -198,6 +223,8 @@ local function show_text(text, colour)
 	}))
 end
 
+NBA.show_text = show_text
+
 -- Sender side: each card's use() is one call to this.
 function NBA.send(key)
 	local state = NBA.state()
@@ -241,7 +268,7 @@ MP.register_mod_action("next_blind_attack", function(p)
 	local entry = { key = key }
 	if def.on_receive then def.on_receive(entry, pending) end
 	pending[#pending + 1] = entry
-	show_text(localize({ type = "variable", key = "k_mp_nba_incoming_from_nemesis", vars = { NBA.describe(entry) } }))
+	show_text(localize({ type = "variable", key = target_text(key, "incoming"), vars = { NBA.describe(entry) } }))
 	local reply = entry_fields(entry)
 	reply.result = "pending"
 	reply.pending_count = #pending
@@ -258,7 +285,7 @@ MP.register_mod_action("next_blind_attack_reply", function(p)
 	set_nemesis_pending(p)
 	if p.result == "pending" then
 		table.insert(state.sent, entry)
-		show_text(localize({ type = "variable", key = "k_mp_nba_sent_to_nemesis", vars = { NBA.describe(entry) } }))
+		show_text(localize({ type = "variable", key = target_text(entry.key, "sent"), vars = { NBA.describe(entry) } }))
 		return
 	end
 	-- Refused: nothing was queued, so give the card back (like Joker Swap).
@@ -308,35 +335,36 @@ MP.register_mod_action("next_blind_attack_result", function(p)
 	end
 end, MP.id)
 
--- Undo every effect that landed. leaving = true when the lobby is gone and the
--- run continues in singleplayer.
-local function undo_active(leaving)
+-- Undo every effect that landed (only those for target, if given). leaving =
+-- true when the lobby is gone and the run continues in singleplayer.
+local function undo_active(leaving, target)
 	local state = G.GAME and G.GAME.mp_next_blind
 	if not state then return end
-	local active = state.active
-	state.active = {}
-	state.active_entries = {}
+	local undone = {}
 	for _, key in ipairs(order) do
-		if active[key] ~= nil then defs[key].undo(active[key], leaving) end
+		if state.active[key] ~= nil and (not target or NBA.target(key) == target) then
+			undone[#undone + 1] = { key = key, state = state.active[key] }
+			state.active[key] = nil
+		end
+	end
+	local entries = {}
+	for _, entry in ipairs(state.active_entries) do
+		if target and NBA.target(entry.key) ~= target then entries[#entries + 1] = entry end
+	end
+	state.active_entries = entries
+	for _, item in ipairs(undone) do
+		defs[item.key].undo(item.state, leaving)
 	end
 end
 
--- Start of a real new blind: land every pending effect that targets it.
--- Load order puts this after ui/game/game_state.lua, so G.GAME.blind.pvp is
--- already set when MP.is_pvp_boss() runs here.
-local set_blind_ref = Blind.set_blind
-function Blind:set_blind(blind, reset, silent)
-	set_blind_ref(self, blind, reset, silent)
-	if not blind or reset or not G.hand then return end
+-- Land every pending effect that targets this blind or shop: roll each copy's
+-- chance, tell the attacker, apply what landed. pvp = true on a PvP blind.
+local function land(target, pvp)
 	local state = NBA.state()
-	if not state or #state.pending == 0 then return end
-	-- Normally empty here; if a blind never reached end_round, undo it first.
-	undo_active(false)
-	local pvp = MP.is_pvp_boss()
 	local landing, keep = {}, {}
 	for _, entry in ipairs(state.pending) do
 		local def = defs[entry.key]
-		if def and def.skips_pvp and pvp then
+		if def and (NBA.target(entry.key) ~= target or (def.skips_pvp and pvp)) then
 			keep[#keep + 1] = entry
 		elseif def then
 			landing[entry.key] = landing[entry.key] or {}
@@ -369,6 +397,42 @@ function Blind:set_blind(blind, reset, silent)
 	if #fizzled_names > 0 then
 		show_text(localize({ type = "variable", key = "k_mp_nba_fizzled", vars = { table.concat(fizzled_names, ", ") } }), G.C.GREEN)
 	end
+end
+
+-- Start of a real new blind: land every pending effect that targets it.
+-- Load order puts this after ui/game/game_state.lua, so G.GAME.blind.pvp is
+-- already set when MP.is_pvp_boss() runs here.
+local set_blind_ref = Blind.set_blind
+function Blind:set_blind(blind, reset, silent)
+	set_blind_ref(self, blind, reset, silent)
+	if not blind or reset or not G.hand then return end
+	local state = NBA.state()
+	if not state or #state.pending == 0 then return end
+	-- Normally empty here; if a blind never reached end_round, undo it first.
+	undo_active(false)
+	land("blind", MP.is_pvp_boss())
+end
+
+-- A new shop: land every pending "next shop" effect before the shop's card
+-- areas are built and filled. G.shop is nil only on the first frame of a new
+-- shop visit (it still exists when coming back from a Booster Pack).
+local update_shop_ref = Game.update_shop
+function Game:update_shop(dt)
+	if not G.STATE_COMPLETE and not G.shop and in_run() then
+		local state = NBA.state()
+		if state and #state.pending > 0 then
+			undo_active(false, "shop")
+			land("shop", false)
+		end
+	end
+	return update_shop_ref(self, dt)
+end
+
+-- Leaving the shop ends its effects.
+local toggle_shop_ref = G.FUNCS.toggle_shop
+G.FUNCS.toggle_shop = function(e)
+	undo_active(false, "shop")
+	return toggle_shop_ref(e)
 end
 
 -- Messages to or from a Nemesis who dropped out may be lost, so forget the
